@@ -40,18 +40,16 @@ def read_stat(filename):
 def main():
     args = sys.argv[1:]
 
-    opener = urllib.request.build_opener()
-    opener.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36')]
-    o=opener.open('http://statsheet.com/mcb/teams/stats?season=2014-2015&conf=&games=&stat=possessions&stat_type=');
-    read_stat(o.read().decode('utf-8'))
 
-    if not args:
-        print('usage: htmlfile')
-        sys.exit(1)
-
-    f = open(args[0], 'r')
-    read_stat(f.read())
-    f.close()
+    if args:
+        f = open(args[0], 'r')
+        read_stat(f.read())
+        f.close()
+    else:
+        opener = urllib.request.build_opener()
+        opener.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36')]
+        o = opener.open('http://statsheet.com/mcb/teams/stats?season=2014-2015&conf=&games=&stat=possessions&stat_type=');
+        read_stat(o.read().decode('utf-8'))
 
 
 if __name__ == '__main__':

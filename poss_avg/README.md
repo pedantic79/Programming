@@ -1,7 +1,8 @@
 Calculates the average number of possessions per conference
+Will fetch the data or you can save the html and pass it
 
 ```
-$ ./conf_avg.py poss.html
+$ ./conf_avg.py [file]
 I-New Orleans             74.35
 Great West                68.90
 NEC                       68.83
