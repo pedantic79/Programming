@@ -7,7 +7,6 @@ import urllib.request
 
 def avg(item):
     """ Calculate the average"""
-
     # item is (conf, (poss, games))
     return item[1][0]/item[1][1]
 
@@ -21,6 +20,7 @@ def get_matches(str):
     return m
 
 def read_stat(filename):
+    """ print out the stats """
     matches = get_matches(filename)
 
     conf = {}
@@ -35,8 +35,11 @@ def read_stat(filename):
         if not name in conf:
             conf[name] = data
         else:
-            # Add each individual tuple field for data to conf[name
-            conf[name] = tuple([sum(x) for x in zip(conf[name], data)])
+            # Add each individual tuple field for data to conf[name]
+            # e.g.
+            # list(zip((3, 4), (5, 7))) => [(3, 5), (4, 7)]
+            # [sum(pair) for pair in [(3, 5), (4, 7)]] => [8, 11]
+            conf[name] = tuple([sum(pair) for pair in zip(conf[name], data)])
 
     # sort based on the value returned by the average
     for i in sorted(conf.items(), key=avg, reverse=True):
