@@ -15,14 +15,16 @@ grey = produceRGB [8, 18..240]
   where produceRGB l = [ (c,c,c) | c <- l ]
 
 printColors :: [(Integer, Integer, Integer)] -> Integer -> IO ()
-printColors colorList start = do printColors' colorList 0
+printColors colorList start = printColors' colorList 1
   where
-    printColors' (c:cs) i = do
-      printNum $ i + start
-      printVal (i + start) $ toHexColor c
-      when (mod i 6 == 5) $ putStrLn ""
-      printColors' cs $ i + 1
-    printColors' _ _ = do return ()
+    printColors' (c:cs) i =
+      let color = start + i in
+      do
+        printNum color
+        printVal color $ toHexColor c
+        when (mod i 6 == 5) $ putStrLn ""
+        printColors' cs $ i + 1
+    printColors' _ _ = return ()
     printNum num =
       putStr $ printf "\o33[1;38;5;%dm%3s: \o33[0m" num $ show num
     printVal color value =
