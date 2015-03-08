@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 -- Shamelessly stolen from:
 -- http://en.literateprograms.org/Pi_with_Machin's_formula_(Haskell)
 module Main where
@@ -21,11 +22,11 @@ import System.Environment (getArgs, getProgName)
    sign keeps track of if we are adding or multiplying
 -}
 arccot x unity = par pos (pseq neg (pos + neg))
-  where pos = arccot' 0 (unity `div` x) 1 1
-        neg = arccot' 0 (unity `div` x3) 3 (-1)
-        arccot' sum xpower mult sign
+  where pos = arccot' 0 (unity `div` x) 1 (+) 
+        neg = arccot' 0 (unity `div` x3) 3 (-)
+        arccot' !sum xpower mult sfunc
           | term == 0 = sum
-          | otherwise = arccot' (sum + sign * term) next (mult + 4) sign
+          | otherwise = arccot' (sfunc sum term) next (mult + 4) sfunc
           where term = xpower `div` mult
                 next = xpower `div` x4
         x3 = x * x * x
