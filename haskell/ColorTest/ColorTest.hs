@@ -22,7 +22,7 @@ printColors colorList start = printColors' colorList 1
       do
         printNum color
         printVal color $ toHexColor c
-        when (mod i 6 == 5) $ putStrLn ""
+        when (mod i 6 == 0) $ putStrLn ""
         printColors' cs $ i + 1
     printColors' _ _ = return ()
     printNum num =
@@ -33,5 +33,5 @@ printColors colorList start = printColors' colorList 1
 main = do
 --  printColors simple 0
 --  putStrLn ""
-  printColors colors 16
-  printColors grey 232
+  printColors colors 15
+  printColors grey 231
