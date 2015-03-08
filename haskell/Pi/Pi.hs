@@ -24,8 +24,8 @@ arccot x unity = arccot' 0 (unity `div` x) 1 1
           | term == 0 = sum
           | otherwise = arccot' (sum + sign * term) next (mult + 2) (-sign)
           where term = xpower `div` mult
-                next = xpower `div` (x * x)
-
+                next = xpower `div` x2
+        x2 = x * x
 
 -- pi/4 = 4 * arccot 5 - arccot 239
 {- We give ourselves a 10^10 padding. This way all of are digits are
@@ -34,10 +34,10 @@ arccot x unity = arccot' 0 (unity `div` x) 1 1
 -}
 machin_pi digits = pi' `div` (10 ^ 10)
   where unity = 10 ^ (digits+10)
-        pi' = 4 * (4 * arccot 5 unity - arccot 239 unity)
+        pi'   = 4 * (4 * arccot 5 unity - arccot 239 unity)
 
--- ghc -O2 -rtpsopts Pi.hs
--- ./Pi +RTS -sstderr
+-- ghc -O2 -fllvm -rtsopts Pi.hs
+-- ./Pi <digits> +RTS -sstderr
 main = do
   args <- getArgs
   progName <- getProgName
