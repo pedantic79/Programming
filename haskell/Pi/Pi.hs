@@ -41,8 +41,9 @@ machin_pi digits = pi' `div` (10 ^ 10)
 main = do
   args <- getArgs
   progName <- getProgName
-  if length(args) == 1
-    then print $ machin_pi (read (args !! 0) :: Integer)
+  if length args == 1
+    then print $ machin_pi $ getDigits args
     else putStrLn $ progName ++ " <digits>"
-    
+
+  where getDigits args = read (head args) :: Integer
      

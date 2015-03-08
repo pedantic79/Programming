@@ -17,11 +17,11 @@ grey = produceRGB [8, 18..240]
 colorsToData colorList start = colorsToData' colorList 0 []
   where
     colorsToData' (c:cs) i acc =
-      colorsToData' cs (i + 1) (acc ++ [datum])
+      colorsToData' cs (i + 1) (datum : acc)
       where datum = (start + i, hexColor, newLine)
             hexColor = (toHexColor c)
             newLine = i `mod` 6 == 5
-    colorsToData' _ _ acc = acc
+    colorsToData' _ _ acc = reverse acc
 
 printColor (color, hex, newLine) = do
   putStr $ printf "\o33[1;38;5;%dm%3s: \o33[0m" color $ show color
@@ -36,4 +36,3 @@ main = do
 --  putStrLn ""
   printColors colors 16
   printColors grey 232
-
