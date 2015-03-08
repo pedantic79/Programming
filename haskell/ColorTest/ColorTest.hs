@@ -14,24 +14,26 @@ simple = produceRGB [0, 191] ++ produceRGB [64, 255]
 grey = produceRGB [8, 18..240]
   where produceRGB l = [ (c,c,c) | c <- l ]
 
-printColors :: [(Integer, Integer, Integer)] -> Integer -> IO ()
-printColors colorList start = printColors' colorList 1
+colorsToData colorList start = colorsToData' colorList 0 []
   where
-    printColors' (c:cs) i =
-      let color = start + i in
-      do
-        printNum color
-        printVal color $ toHexColor c
-        when (mod i 6 == 0) $ putStrLn ""
-        printColors' cs $ i + 1
-    printColors' _ _ = return ()
-    printNum num =
-      putStr $ printf "\o33[1;38;5;%dm%3s: \o33[0m" num $ show num
-    printVal color value =
-      putStr $ printf "\o33[38;5;%dm%s\o33[0m  " color value
+    colorsToData' (c:cs) i acc =
+      colorsToData' cs (i + 1) (acc ++ [datum])
+      where datum = (start + i, hexColor, newLine)
+            hexColor = (toHexColor c)
+            newLine = i `mod` 6 == 5
+    colorsToData' _ _ acc = acc
+
+printColor (color, hex, newLine) = do
+  putStr $ printf "\o33[1;38;5;%dm%3s: \o33[0m" color $ show color
+  putStr $ printf "\o33[38;5;%dm%s\o33[0m  " color hex
+  when newLine $ putStrLn ""
+
+printColors :: [(Integer, Integer, Integer)] -> Integer -> IO ()
+printColors colorList start = mapM_ printColor $ colorsToData colorList start
 
 main = do
 --  printColors simple 0
 --  putStrLn ""
-  printColors colors 15
-  printColors grey 231
+  printColors colors 16
+  printColors grey 232
+
