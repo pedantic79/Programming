@@ -37,7 +37,7 @@ arccot x unity = par pos (pseq neg (pos + neg))
    accurate. If we don't, then the last few digits maybe off because
    we haven't converged.
 -}
-machin_pi digits = pi' `div` (10 ^ 10)
+machinPi digits = pi' `div` (10 ^ 10)
   where unity = 10 ^ (digits+10)
         pi'   = 4 * (4 * arccot 5 unity - arccot 239 unity)
 
@@ -46,7 +46,7 @@ main = do
   args <- getArgs
   progName <- getProgName
   if length args == 1
-    then print $ machin_pi $ getDigits args
+    then print $ machinPi $ getDigits args
     else putStrLn $ progName ++ " <digits>"
   where getDigits args = read (head args) :: Integer
     

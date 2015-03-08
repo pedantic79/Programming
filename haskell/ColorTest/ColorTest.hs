@@ -19,7 +19,7 @@ colorsToData colorList start = colorsToData' colorList 0 []
     colorsToData' (c:cs) i acc =
       colorsToData' cs (i + 1) (datum : acc)
       where datum = (start + i, hexColor, newLine)
-            hexColor = (toHexColor c)
+            hexColor = toHexColor c
             newLine = i `mod` 6 == 5
     colorsToData' _ _ acc = reverse acc
 
