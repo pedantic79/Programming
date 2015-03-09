@@ -38,6 +38,7 @@ machinPi digits = pi' `div` (10 ^ 10)
 
 -- ghc -O2 -fllvm -rtsopts Pi.hs
 -- ./Pi <digits> +RTS -sstderr
+main :: IO ()
 main = do
   args <- getArgs
   progName <- getProgName
