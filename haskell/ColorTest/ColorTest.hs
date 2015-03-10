@@ -18,14 +18,13 @@ grey = produceRGB [8, 18..240]
   where produceRGB l = [ (c,c,c) | c <- l ]
 
 colorsToData :: [(Int, Int, Int)] -> Int -> [(Int, String, Bool)]
-colorsToData colorList start = colorsToData' colorList 0 []
+colorsToData colorList start = colorsToData' colorList 0
   where
-    colorsToData' (c:cs) i acc =
-      colorsToData' cs (i + 1) (datum : acc)
+    colorsToData' (c:cs) i = datum : colorsToData' cs (i + 1)
       where datum = (start + i, hexColor, newLine)
             hexColor = toHexColor c
             newLine = i `mod` 6 == 5
-    colorsToData' _ _ acc = reverse acc
+    colorsToData' _ _ = []
 
 printColor :: (Int, String, Bool) -> IO ()
 printColor (color, hex, newLine) = do
