@@ -1,38 +1,36 @@
 module Main where
 
-import System.Environment (getArgs, getProgName)
+import Criterion.Main
 
-test :: Integer -> Integer -> [Integer]
-test m t
-  | t == 0    = [0..m]
-  | t == 1    = testNoAcc 0
-  | t == 2    = testAccPrepend 0 []
-  | otherwise = testAccAppend  0 []
-  where testNoAcc n
-	  | n < m     = n:testNoAcc (n + 1)
-	  | otherwise = []
-        testAccPrepend n acc
-          | n < m     = testAccPrepend (n + 1) (n:acc)
-          | otherwise = reverse acc
-        testAccAppend n acc 
-          | n < m     = testAccAppend (n + 1) (acc ++ [n])
-          | otherwise = acc
+noAcc m = noAcc' 0
+  where noAcc' n      | n < m     = n:noAcc' (n + 1)
+                      | otherwise = []
 
-main :: IO ()
-main = do
-  args <- getArgs
-  progName <- getProgName
-  putStrLn (if not (null args)
-            then show $ test (f args 0) (f args 1) 
-            else progName ++ " <num> [0|1|2|3]")
-  where f args n
-          | n  < length args = read (args !! n) :: Integer
-          | otherwise        = 0
-               
+accPre m = accPre' 0 []
+  where accPre' n acc | n < m     = accPre' (n + 1) (n:acc)
+                      | otherwise = reverse acc
 
-{-
-ghc -Wall -fllvm -O rtsopts Test.hs
+accApp m = accApp' 0 []
+  where accApp' n acc | n < m     = accApp' (n + 1) (acc ++ [n])
+                      | otherwise = acc
 
-./Test 40000 0 +RTS -sstder >/dev/null
+simple m = [0..m]
 
--}
+main = defaultMain
+       [ bgroup "accApp" [ bench "10k"  $ whnf accApp 10000
+                         , bench "50k"  $ whnf accApp 50000
+                         , bench "500k" $ whnf accApp 500000
+                         , bench "5m"   $ whnf accApp 5000000
+                         ]
+       , bgroup "accPre" [ bench "10k"  $ whnf accPre 10000
+                         , bench "50k"  $ whnf accPre 50000
+                         , bench "500k" $ whnf accPre 500000
+                         , bench "5m"   $ whnf accPre 5000000
+                         ]
+       , bgroup "noAcc"  [ bench "10k"  $ whnf noAcc  10000
+                         , bench "50k"  $ whnf noAcc  50000
+                         , bench "500k" $ whnf noAcc  500000
+                         , bench "5m"   $ whnf noAcc  5000000
+                         ]
+       ]
+
