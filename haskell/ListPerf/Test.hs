@@ -17,28 +17,23 @@ accApp m = accApp' 0 []
                       | otherwise = acc
 
 simple :: Integer -> [Integer]
-simple m = [0..m]
+simple m = [1..m]
 
 main = defaultMain
-       [ bgroup "accAppWh" [ bench "1"   $ whnf accPre 1
-                           , bench "10"  $ whnf accPre 10
-                           , bench "50"  $ whnf accPre 50
-                           ]
-       , bgroup "accAppNf" [ bench "1"   $ nf accApp 1
-                           , bench "10"  $ nf accApp 10
-                           , bench "50"  $ nf accApp 50
-                           ]
-       , bgroup "accPreNf" [ bench "1"   $ nf accPre 1
-                           , bench "10"  $ nf accPre 10
-                           , bench "50"  $ nf accPre 50
-                           , bench "100" $ nf accPre 100
-                           , bench "500" $ nf accPre 500
-                           ]
-       , bgroup "noAccNf"  [ bench "1"   $ nf noAcc  1
-                           , bench "10"  $ nf noAcc  10
-                           , bench "50"  $ nf noAcc  50
-                           , bench "100" $ nf noAcc  100
-                           , bench "500" $ nf noAcc  500
-                           ]
+       [ bgroup "append"  [ bench "10"   $ nf accApp 10
+                          , bench "50"   $ nf accApp 50
+--                          , bench "250"  $ nf accApp 250
+--                          , bench "1250" $ nf accApp 1250
+                          ]
+       , bgroup "prepend" [ bench "10"   $ nf accPre 10
+                          , bench "50"   $ nf accPre 50
+                          , bench "250"  $ nf accPre 250
+                          , bench "1250" $ nf accPre 1250
+                          ]
+       , bgroup "noAccum" [ bench "10"   $ nf noAcc  10
+                          , bench "50"   $ nf noAcc  50
+                          , bench "250"  $ nf noAcc  250
+                          , bench "1250" $ nf noAcc  1250
+                          ]
        ]
 
