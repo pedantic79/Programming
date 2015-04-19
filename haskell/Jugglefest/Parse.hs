@@ -15,7 +15,6 @@ data Juggler = Juggler { _jName :: JugglerName
                        , _jPref :: [CircuitName]
                        }
 
-
 instance Show (Skill) where
   show (Skill h e p) = printf "<%d %d %d>" h e p
 
@@ -49,15 +48,8 @@ parseCircuit = do
   sk <- parseSkill
   return (Circuit name sk)
 
-parseCircuitList :: Parsec.Parsec String () [CircuitName]
-parseCircuitList = do
-  first <- Parsec.many1 Parsec.alphaNum
-  rest <- parseCLRest
-  return (first:rest)
-  where parseCLRest = do
-          Parsec.char ','
-          parseCircuitList
-          <|> return []
+parseCL :: Parsec.Parsec String () [CircuitName]
+parseCL = Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
 
 parseJuggler :: Parsec.Parsec String () Juggler
 parseJuggler = do
@@ -67,25 +59,23 @@ parseJuggler = do
   Parsec.spaces
   sk <- parseSkill
   Parsec.spaces
-  cl <- parseCircuitList
+  cl <- parseCL
   return (Juggler name sk cl)
 
 
 parseLine :: Parsec.Parsec String () Foo
 parseLine = do
-  c <- parseCircuit
-  return (Left c)
+    c <- parseCircuit
+    return (Left c)
   <|> do
     j <- parseJuggler
     return (Right j)
-  <|> do
-    eol
-    parseLine
+  <|> (eol >> parseLine)
 
 parseFile :: Parsec.Parsec String () [Foo]
 parseFile = Parsec.endBy parseLine eol
 
-eol = Parsec.try (Parsec.string "\n\r")
+eol =   Parsec.try (Parsec.string "\n\r")
     <|> Parsec.try (Parsec.string "\r\n")
     <|> Parsec.string "\n"
     <|> Parsec.string "\r"
