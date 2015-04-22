@@ -1,9 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 import qualified Control.Lens as Lens
 import Control.Lens ((^.))
+import qualified Control.Monad.State as St
 import Data.Either (Either, lefts, rights)
 import Data.List (intercalate)
-import qualified Data.Map.Strict as Map
+import qualified Data.Map.Lazy as Map
+import Data.Maybe (mapMaybe)
 import qualified Text.Parsec as Parsec
 import Text.Parsec ((<|>),(<?>))
 import Text.Printf (printf)
@@ -35,8 +37,11 @@ data ProcessData = ProcessData
                    { _circMap :: Map.Map CircuitName Circuit
                    , _juggMap :: Map.Map JugglerName Juggler
                    , _circuits :: Map.Map CircuitName [JugglerName]
+                   , _size :: Int
                    , _toProcess :: [JugglerName]
                    } deriving (Show)
+
+type PDState = St.State ProcessData
 
 -- Use TH calls to create our lenses
 Lens.makeLenses ''Skill
@@ -108,14 +113,29 @@ dotProductSk s t = s^.h*t^.h  +  s^.e*t^.e  +  s^.p*t^.p
 dotProductCrJg :: Circuit -> Juggler -> Int
 dotProductCrJg c j = dotProductSk (c^.cSkill) (j^.jSkill)
 
-mkCMap = Map.fromList . map (\c -> (c^.cName, c))
-mkOutM = Map.fromList . map (\c -> (c^.cName, []))
-mkJMap = Map.fromList . map (\j -> (j^.jName, j))
+getJugglers :: [JugglerName] -> PDState [Maybe Juggler]
+getJugglers = mapM getJuggler
 
-doStuff f = d
+getJuggler :: JugglerName -> PDState (Maybe Juggler)
+getJuggler jn = do
+  j <- Lens.use juggMap
+  return (Map.lookup jn j)
+
+foo :: PDState [Juggler]
+foo = do
+  names <- Lens.use toProcess
+  l <- getJugglers names
+  return (mapMaybe id l)
+
+doStuff f = St.evalState foo pd
   where
+    pd = ProcessData (mkCMap circ) (mkJMap jugg) (mkOutM circ) s toP
     circ = lefts f
     jugg = rights f
-    toP = map (\j -> j^.jName) jugg
-    d = ProcessData (mkCMap circ) (mkJMap jugg) (mkOutM circ) toP
-
+    lenNum = fromIntegral . length
+    s = ceiling (lenNum jugg / lenNum circ)
+    toP = map (^.jName) jugg
+    mkCMap = Map.fromList . map (\c -> (c^.cName, c))
+    mkOutM = Map.fromList . map (\c -> (c^.cName, []))
+    mkJMap = Map.fromList . map (\j -> (j^.jName, j))
+    
