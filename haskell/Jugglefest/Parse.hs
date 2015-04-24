@@ -1,16 +1,16 @@
 {-# LANGUAGE TemplateHaskell #-}
 import qualified Control.Lens as Lens
 import Control.Lens ((^.),(%=),(.=),(<|),at,_1,_2,_head,_tail)
-import Control.Monad (liftM)                                           
+import Control.Monad (when)
 import qualified Control.Monad.State as St
 import Data.Either (Either, lefts, rights)
-import Data.List (intercalate)
+import Data.List (intercalate,sort)
 import qualified Data.Map.Lazy as Map
-import Data.Map ((!))
 import Data.Maybe (mapMaybe)
 import qualified Text.Parsec as Parsec
 import Text.Parsec ((<|>),(<?>))
 import Text.Printf (printf)
+import Debug.Trace
 
 type CircuitName = String
 type JugglerName = String
@@ -51,6 +51,7 @@ data ProcessData = ProcessData
                    , _circuits :: Map.Map CircuitName [Juggler]
                    , _size :: Int
                    , _toProcess :: [Juggler]
+                   , _lost :: [Juggler]
                    } deriving (Show)
 
 
@@ -61,6 +62,12 @@ Lens.makeLenses ''Circuit
 Lens.makeLenses ''JugglerRaw
 Lens.makeLenses ''Juggler
 Lens.makeLenses ''ProcessData
+
+instance Eq (Juggler) where
+  (==) x y = (snd . head . _jCircDP) x == (snd . head . _jCircDP) y
+
+instance Ord (Juggler) where
+  (<=) x y = (snd . head . _jCircDP) x <= (snd . head . _jCircDP) y
 
 -- Allow us to calculate dot products of anything that has skill
 -- We use lenses so we need to wait until after the makeLenses
@@ -137,10 +144,10 @@ processFile f = do
 --   Right r -> mapM_ print $ doStuff r
    Right r -> print $ doStuff r
 
-getJuggler :: JugglerName -> PDState Juggler
+getJuggler :: JugglerName -> PDState (Maybe Juggler)
 getJuggler jn = do
   j <- Lens.use juggMap
-  return (j ! jn)
+  return (Map.lookup jn j)
 
 getFirstToProcess :: PDState (Maybe Juggler)
 getFirstToProcess = do
@@ -149,14 +156,32 @@ getFirstToProcess = do
     where maybeHead [] = Nothing
           maybeHead (x:_) = Just x
 
-getCircuitLen :: CircuitName -> PDState Int
-getCircuitLen n = do
+getJuggFromCirc :: CircuitName -> PDState [Juggler]
+getJuggFromCirc cn = do
   circMap <- Lens.use circuits
-  let jList = circMap ! n
-  return (length jList)
+  let jList = Map.lookup cn circMap
+  case Map.lookup cn circMap of
+   Nothing -> error $ "getJuggFromCirc: " ++ show cn
+   Just js -> return js
+
+getCircuitLen :: CircuitName -> PDState Int
+getCircuitLen cn =
+  if null cn
+  then return 0
+  else do jList <- getJuggFromCirc cn
+          return (length jList)
 
 addJuggler :: CircuitName -> Juggler -> PDState ()
-addJuggler cn j = circuits.at cn %= fmap (j<|)
+addJuggler cn j = do
+  circuits.at cn %= fmap (j<|)
+  toProcess %= tail
+
+removeLowJuggler :: CircuitName -> PDState Juggler
+removeLowJuggler cn = do
+  jList <- getJuggFromCirc cn
+  let sList = sort jList
+  circuits.at cn .= return (tail sList)
+  return $ Lens.over jCircDP tail (head sList)
 
 assignJuggler :: PDState ()
 assignJuggler = do
@@ -164,26 +189,25 @@ assignJuggler = do
   case mJ of
    Nothing -> return ()
    Just j -> do
-     let c = j^.jCircDP._head._1
-     len <- getCircuitLen c
+     let cn = j^.jCircDP._head._1
+     addJuggler cn j
+     len <- getCircuitLen cn
+     when (len == 0) $ lost %= (j:)
      s <- Lens.use size
-     if len < s
-       then do
-       addJuggler c j
-       toProcess %= tail
-       assignJuggler
-       else return ()
-      
+     when (len > s) $
+       do oldJ <- removeLowJuggler cn
+          toProcess %= (oldJ:)
+     assignJuggler
 
 calcJuggDP :: Map.Map CircuitName Circuit -> JugglerRaw -> Juggler
 calcJuggDP cMap jr = Juggler (jr^.jrName) (jr^.jrSkill) dps
   where dps = map (\c -> (c^.cName, dotProduct jr c)) cList
-        cList = map (\c -> cMap ! c) (jr^.jrPref)
+        cList = mapMaybe (`Map.lookup` cMap) (jr^.jrPref)
 
 
 doStuff f = St.evalState bar pd
   where
-    pd = ProcessData cMap (mkJMap jugg) (mkOutM circ) s jugg
+    pd = ProcessData cMap (mkJMap jugg) (mkOutM circ) s jugg []
     circ = lefts f
     juggRaw = rights f
     cMap = mkCMap circ
@@ -193,15 +217,22 @@ doStuff f = St.evalState bar pd
     mkCMap = Map.fromList . map (\c -> (c^.cName, c))
     mkOutM = Map.fromList . map (\c -> (c^.cName, []))
     mkJMap = Map.fromList . map (\j -> (j^.jName, j))
-    
 
-foo :: PDState [Juggler]
-foo = Lens.use toProcess
+{-foo :: PDState [Juggler]
+foo = do
+  jList <- Lens.use toProcess
+  return jList
+  -}
 
 --bar :: PDState [Juggler]
 bar = do
   assignJuggler
-  jList2 <- Lens.use toProcess
+  jList <- Lens.use toProcess
   cMap <- Lens.use circuits
-  return (jList2, cMap)
+  s <- Lens.use size
+  let c = Map.filter (\l -> length l < s) cMap
+  l <- Lens.use lost
+  return ((Map.size c), c, l)
 
+
+main = processFile "simple2.txt"
