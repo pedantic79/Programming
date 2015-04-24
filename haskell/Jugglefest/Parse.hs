@@ -135,15 +135,6 @@ eol =   Parsec.try (Parsec.string "\n\r")
     <|> Parsec.string "\r"
     <?> "end of line"
 
-processFile :: FilePath -> IO ()
-processFile f = do
-  c <- readFile f
-  case Parsec.parse parseLines f c of
-   Left e -> do putStrLn "Error parsing input:"
-                print e
---   Right r -> mapM_ print $ doStuff r
-   Right r -> print $ doStuff r
-
 getJuggler :: JugglerName -> PDState (Maybe Juggler)
 getJuggler jn = do
   j <- Lens.use juggMap
@@ -164,12 +155,12 @@ getJuggFromCirc cn = do
    Nothing -> error $ "getJuggFromCirc: " ++ show cn
    Just js -> return js
 
-getCircuitLen :: CircuitName -> PDState Int
+getCircuitLen :: CircuitName -> PDState (Maybe Int)
 getCircuitLen cn =
   if null cn
-  then return 0
+  then return Nothing
   else do jList <- getJuggFromCirc cn
-          return (length jList)
+          return (Just (length jList))
 
 addJuggler :: CircuitName -> Juggler -> PDState ()
 addJuggler cn j = do
@@ -191,12 +182,14 @@ assignJuggler = do
    Just j -> do
      let cn = j^.jCircDP._head._1
      addJuggler cn j
-     len <- getCircuitLen cn
-     when (len == 0) $ lost %= (j:)
-     s <- Lens.use size
-     when (len > s) $
-       do oldJ <- removeLowJuggler cn
-          toProcess %= (oldJ:)
+     mLen <- getCircuitLen cn
+     case mLen of
+      Nothing -> lost %= (j:)
+      Just len -> do
+        s <- Lens.use size
+        when (len > s) $
+          do oldJ <- removeLowJuggler cn
+             toProcess %= (oldJ:)
      assignJuggler
 
 calcJuggDP :: Map.Map CircuitName Circuit -> JugglerRaw -> Juggler
@@ -204,6 +197,14 @@ calcJuggDP cMap jr = Juggler (jr^.jrName) (jr^.jrSkill) dps
   where dps = map (\c -> (c^.cName, dotProduct jr c)) cList
         cList = mapMaybe (`Map.lookup` cMap) (jr^.jrPref)
 
+processFile :: FilePath -> IO ()
+processFile f = do
+  c <- readFile f
+  case Parsec.parse parseLines f c of
+   Left e -> do putStrLn "Error parsing input:"
+                print e
+--   Right r -> mapM_ print $ doStuff r
+   Right r -> print $ doStuff r
 
 doStuff f = St.evalState bar pd
   where
@@ -232,7 +233,7 @@ bar = do
   s <- Lens.use size
   let c = Map.filter (\l -> length l < s) cMap
   l <- Lens.use lost
-  return ((Map.size c), c, l)
+  return (c, l, Map.size c, length l)
 
 
 main = processFile "simple2.txt"
