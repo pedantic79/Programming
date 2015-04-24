@@ -259,3 +259,4 @@ convertToLine acc (c:cs) = do
   convertToLine (line : acc) cs
 
 main = processFile "jugglefest.txt" "jugglefest.out.txt"
+-- grep ^C1970 jugglefest.out.txt | sed 's/J/\n/g' | awk '!/^C/ {print $1}' |  awk '{total=total+$1} END{print total}'
