@@ -5,7 +5,7 @@ import Control.Monad (when)
 import qualified Control.Monad.State as St
 import Data.Either (Either, lefts, rights)
 import Data.List (intercalate,sort)
-import qualified Data.Map.Lazy as Map
+import qualified Data.Map.Strict as Map
 import Data.Maybe (mapMaybe)
 import qualified Text.Parsec as Parsec
 import Text.Parsec ((<|>),(<?>))
@@ -197,16 +197,18 @@ calcJuggDP cMap jr = Juggler (jr^.jrName) (jr^.jrSkill) dps
   where dps = map (\c -> (c^.cName, dotProduct jr c)) cList
         cList = mapMaybe (`Map.lookup` cMap) (jr^.jrPref)
 
-processFile :: FilePath -> IO ()
-processFile f = do
+processFile :: FilePath -> FilePath -> IO ()
+processFile f out = do
   c <- readFile f
   case Parsec.parse parseLines f c of
    Left e -> do putStrLn "Error parsing input:"
                 print e
---   Right r -> mapM_ print $ doStuff r
-   Right r -> print $ doStuff r
+   Right r -> outputFile out (unlines $ doStuff r)
 
-doStuff f = St.evalState bar pd
+outputFile :: FilePath -> String -> IO ()
+outputFile f s = writeFile f s
+
+doStuff f = St.evalState foo pd
   where
     pd = ProcessData cMap (mkJMap jugg) (mkOutM circ) s jugg []
     circ = lefts f
@@ -219,21 +221,41 @@ doStuff f = St.evalState bar pd
     mkOutM = Map.fromList . map (\c -> (c^.cName, []))
     mkJMap = Map.fromList . map (\j -> (j^.jName, j))
 
-{-foo :: PDState [Juggler]
 foo = do
-  jList <- Lens.use toProcess
-  return jList
-  -}
+  assignAllJugglers
+  c <- Lens.use circMap
+  lines <- convertToLine [] (Map.elems c)
+  return lines
 
---bar :: PDState [Juggler]
-bar = do
+assignAllJugglers :: PDState ()
+assignAllJugglers = do
   assignJuggler
-  jList <- Lens.use toProcess
-  cMap <- Lens.use circuits
+  cMap <- Lens.use circuits  
   s <- Lens.use size
-  let c = Map.filter (\l -> length l < s) cMap
+  let c = Map.keys $ Map.filter (\l -> length l < s) cMap
   l <- Lens.use lost
-  return (c, l, Map.size c, length l)
+  assignLostJugglers c l
 
 
-main = processFile "simple2.txt"
+assignLostJugglers :: [CircuitName] -> [Juggler] -> PDState ()
+assignLostJugglers _ [] = return ()
+assignLostJugglers cAll@(c:cs) (j:js) = do
+  cLen <- getCircuitLen c
+  s <- Lens.use size
+  case cLen of
+   Nothing -> error $ "assignLostJugglers: " ++ show cLen
+   Just cl -> do
+     circuits.at c %= fmap (j<|)
+     if (cl + 1 < s)
+       then assignLostJugglers cAll js
+       else assignLostJugglers cs js
+
+convertToLine :: [String] -> [Circuit] -> PDState [String]
+convertToLine acc [] = return acc
+convertToLine acc (c:cs) = do
+  let cn = c^.cName
+  jugglers <- getJuggFromCirc cn
+  let line = cn ++ ' ' : (intercalate "," (map (show) jugglers))
+  convertToLine (line : acc) cs
+
+main = processFile "jugglefest.txt" "jugglefest.out.txt"
