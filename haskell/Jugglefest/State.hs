@@ -4,6 +4,7 @@ import Control.Lens ((^.),(<|),(%=),(.=),at,_1,_head)
 import Control.Monad (when)
 import Data.List (intercalate,sort)
 import qualified Data.Map.Strict as Map
+import Data.Maybe (mapMaybe)
 import Types
 
 getJuggler :: JugglerName -> PDState (Maybe Juggler)
@@ -87,9 +88,10 @@ assignLostJugglers cAll@(c:cs) (j:js) = do
 convertToLine :: [String] -> [Circuit] -> PDState [String]
 convertToLine acc [] = return acc
 convertToLine acc (c:cs) = do
-  let cn = c^.cName
+  let cn = cName c
   jugglers <- getJuggFromCirc cn
-  let line = cn ++ ' ' : intercalate "," (map show jugglers)
+  pristine <- mapM (getJuggler . jName) jugglers
+  let line = cn ++ ' ' : intercalate "," (map show . mapMaybe id $ pristine)
   convertToLine (line : acc) cs
 
 assign :: PDState [String]

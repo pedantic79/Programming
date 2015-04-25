@@ -1,7 +1,8 @@
 module Main where
+import Control.Arrow ((&&&))
 import qualified Control.Monad.State as St
 import qualified Data.Either as Either
-import qualified Data.Map.Strict as Map
+import qualified Data.Map.Lazy as Map
 import Data.Maybe (mapMaybe)
 import qualified Text.Parsec as Parsec
 import Control.Lens ((^.))
@@ -10,9 +11,9 @@ import State
 import Parse
 
 calcJuggDP :: Map.Map CircuitName Circuit -> JugglerRaw -> Juggler
-calcJuggDP cMap jr = Juggler (jr^.jrName) (jr^.jrSkill) dps
-  where dps = map (\c -> (c^.cName, dotProduct jr c)) cList
-        cList = mapMaybe (`Map.lookup` cMap) (jr^.jrPref)
+calcJuggDP cMap jr = Juggler (jrName jr) (jrSkill jr) dps
+  where dps = map (cName &&& dotProduct jr) cList
+        cList = mapMaybe (`Map.lookup` cMap) (jrPref jr)
 
 processFile :: FilePath -> FilePath -> IO ()
 processFile f o = do
@@ -28,9 +29,9 @@ mkProcessData c jr = ProcessData cMap jMap oMap s jugg []
     mapMkMap fn = Map.fromList . map fn
     s = ceiling (lenNum jr / lenNum c)
     jugg = map (calcJuggDP cMap) jr
-    cMap = mapMkMap (\x -> (x^.cName, x)) c
-    jMap = mapMkMap (\j -> (j^.jName, j)) jugg
-    oMap = mapMkMap (\x -> (x^.cName, [])) c
+    cMap = mapMkMap (cName &&& id) c
+    jMap = mapMkMap (jName &&& id) jugg
+    oMap = mapMkMap (\x -> (cName x, [])) c
 
 evaluate :: [FileLine] -> [String]
 evaluate f = St.evalState assign $
