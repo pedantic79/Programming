@@ -64,10 +64,15 @@ Lens.makeLenses ''Juggler
 Lens.makeLenses ''ProcessData
 
 instance Eq (Juggler) where
-  (==) x y = (snd . head . _jCircDP) x == (snd . head . _jCircDP) y
+  (==) x y = getDP x == getDP y
 
 instance Ord (Juggler) where
-  (<=) x y = (snd . head . _jCircDP) x <= (snd . head . _jCircDP) y
+  (<=) x y = getDP x <= getDP y
+
+getDP :: Juggler -> Int
+getDP j = case _jCircDP j of
+           [] -> -1
+           ((_,p):_) -> p
 
 -- Allow us to calculate dot products of anything that has skill
 -- We use lenses so we need to wait until after the makeLenses
@@ -188,8 +193,7 @@ assignJuggler = do
       Just len -> do
         s <- Lens.use size
         when (len > s) $
-          do oldJ <- removeLowJuggler cn
-             toProcess %= (oldJ:)
+          removeLowJuggler cn >>= \oldJ -> toProcess %= (oldJ:)
      assignJuggler
 
 calcJuggDP :: Map.Map CircuitName Circuit -> JugglerRaw -> Juggler
