@@ -1,11 +1,12 @@
 module State (assign) where
 import qualified Control.Lens as Lens
-import Control.Lens ((^.),(<|),(%=),(.=),at,_1,_head)
+import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
 import Control.Monad (when)
 import Data.List (intercalate,sort)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes,listToMaybe)
 import Types
+import Lens
 
 getJuggler :: JugglerName -> PDState (Maybe Juggler)
 getJuggler jn = do
@@ -15,9 +16,7 @@ getJuggler jn = do
 getFirstToProcess :: PDState (Maybe Juggler)
 getFirstToProcess = do
   jList <- Lens.use toProcess
-  return (maybeHead jList)
-    where maybeHead [] = Nothing
-          maybeHead (x:_) = Just x
+  return (listToMaybe jList)
 
 getJuggFromCirc :: CircuitName -> PDState [Juggler]
 getJuggFromCirc cn = do

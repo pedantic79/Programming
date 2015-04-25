@@ -3,7 +3,8 @@ module Parse (parseLines) where
 import qualified Data.Either as Either
 import qualified Text.Parsec as Parsec
 import Text.Parsec ((<|>),(<?>))
-import Types
+import Types (CircuitName,FileLine)
+import Types (Circuit(..),Juggler(..),JugglerRaw(..),Skill(..))
 
 type Parser = Parsec.Parsec String ()
 

@@ -10,15 +10,6 @@ module Types
        , PDState(..)
        , Skill(..)
        , dotProduct
-
-         -- lenses
-       , circuits
-       , circMap
-       , jCircDP
-       , juggMap
-       , lost
-       , toProcess
-       , size
        ) where
 import qualified Control.Lens as Lens
 import qualified Control.Monad.State as St
@@ -66,10 +57,6 @@ data ProcessData = ProcessData
                    , _toProcess :: [Juggler]
                    , _lost :: [Juggler]
                    } deriving (Show)
-
--- Use TH calls to create our lenses
-Lens.makeLenses ''Juggler
-Lens.makeLenses ''ProcessData
 
 instance Eq (Juggler) where
   (==) x y = getDP x == getDP y
