@@ -3,8 +3,9 @@ module Parse (parseLines) where
 import qualified Data.Either as Either
 import qualified Text.Parsec as Parsec
 import Text.Parsec ((<|>),(<?>))
-import Types 
+import Types
 
+type Parser = Parsec.Parsec String ()
 
 parseSkill :: Parser Skill
 parseSkill = do
@@ -24,8 +25,8 @@ parseCircuit = do
   sk <- parseSkill
   return (Circuit name sk)
 
-parseCL :: Parser [CircuitName]
-parseCL = Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
+parseCircList :: Parser [CircuitName]
+parseCircList = Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
 
 parseJuggler :: Parser JugglerRaw
 parseJuggler = do
@@ -33,7 +34,7 @@ parseJuggler = do
   name <- Parsec.many1 Parsec.alphaNum
   sk <- parseSkill
   Parsec.space
-  cl <- parseCL
+  cl <- parseCircList
   return (JugglerRaw name sk cl)
 
 parseLine :: Parser FileLine

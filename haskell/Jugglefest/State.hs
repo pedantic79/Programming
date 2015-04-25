@@ -1,15 +1,10 @@
-module State
-       ( foo
-       , calcJuggDP
-       ) where
+module State (assign) where
 import qualified Control.Lens as Lens
 import Control.Lens ((^.),(<|),(%=),(.=),at,_1,_head)
 import Control.Monad (when)
 import Data.List (intercalate,sort)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (mapMaybe)
 import Types
-
 
 getJuggler :: JugglerName -> PDState (Maybe Juggler)
 getJuggler jn = do
@@ -67,17 +62,6 @@ assignJuggler = do
           removeLowJuggler cn >>= \oldJ -> toProcess %= (oldJ:)
      assignJuggler
 
-calcJuggDP :: Map.Map CircuitName Circuit -> JugglerRaw -> Juggler
-calcJuggDP cMap jr = Juggler (jr^.jrName) (jr^.jrSkill) dps
-  where dps = map (\c -> (c^.cName, dotProduct jr c)) cList
-        cList = mapMaybe (`Map.lookup` cMap) (jr^.jrPref)
-
-foo :: PDState [String]
-foo = do
-  assignAllJugglers
-  c <- Lens.use circMap
-  convertToLine [] (Map.elems c)
-
 assignAllJugglers :: PDState ()
 assignAllJugglers = do
   assignJuggler
@@ -107,3 +91,9 @@ convertToLine acc (c:cs) = do
   jugglers <- getJuggFromCirc cn
   let line = cn ++ ' ' : intercalate "," (map show jugglers)
   convertToLine (line : acc) cs
+
+assign :: PDState [String]
+assign = do
+  assignAllJugglers
+  c <- Lens.use circMap
+  convertToLine [] (Map.elems c)

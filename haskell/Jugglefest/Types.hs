@@ -1,28 +1,29 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Types
-       ( Parser
-       , Skill(..)
-       , Circuit(..)
+       ( Circuit(..)
        , CircuitName
+       , FileLine
        , Juggler(..)
        , JugglerName
        , JugglerRaw(..)
-       , FileLine
-       , PDState(..)
        , ProcessData(..)
+       , PDState(..)
+       , Skill(..)
+       , dotProduct
+
+         -- lenses
        , cName
        , circuits
-       , size
-       , lost
        , circMap
-       , jName
-       , jrPref
-       , jrName
-       , jrSkill
-       , dotProduct
-       , juggMap
-       , toProcess
        , jCircDP
+       , jName
+       , jrName
+       , jrPref
+       , jrSkill
+       , juggMap
+       , lost
+       , toProcess
+       , size
        ) where
 import qualified Control.Lens as Lens
 import qualified Control.Monad.State as St
@@ -33,13 +34,12 @@ import Text.Printf (printf)
 
 type CircuitName = String
 type JugglerName = String
-type Parser = Parsec.Parsec String ()
 type FileLine = Either.Either Circuit JugglerRaw
 type PDState = St.State ProcessData
 type CircuitDP = (CircuitName, Int)
 
-data Skill = Skill { _h :: Int, _e :: Int, _p :: Int }
-data Circuit = Circuit { _cName :: CircuitName, _cSkill :: Skill }
+data Skill = Skill { h :: Int, e :: Int, p :: Int }
+data Circuit = Circuit { _cName :: CircuitName, cSkill :: Skill }
 data JugglerRaw = JugglerRaw
                   { _jrName :: JugglerName
                   , _jrSkill :: Skill
@@ -47,7 +47,7 @@ data JugglerRaw = JugglerRaw
                   }
 data Juggler = Juggler
                { _jName :: JugglerName
-               , _jSkill :: Skill
+               , jSkill :: Skill
                , _jCircDP :: [CircuitDP]
                }
 
@@ -74,7 +74,6 @@ data ProcessData = ProcessData
                    } deriving (Show)
 
 -- Use TH calls to create our lenses
-Lens.makeLenses ''Skill
 Lens.makeLenses ''Circuit
 Lens.makeLenses ''JugglerRaw
 Lens.makeLenses ''Juggler
@@ -101,6 +100,5 @@ class DPCalc a where
           Skill x y z = getSkill v
 
 instance DPCalc (JugglerRaw) where getSkill = _jrSkill
-instance DPCalc (Circuit) where getSkill = _cSkill
+instance DPCalc (Circuit) where getSkill = cSkill
 instance DPCalc (Skill) where getSkill = id
-
