@@ -1,11 +1,11 @@
 module Main where
 import Control.Arrow ((&&&))
+import Control.Lens ((^.))
 import qualified Control.Monad.State as St
 import qualified Data.Either as Either
-import qualified Data.Map.Lazy as Map
+import qualified Data.Map.Strict as Map
 import Data.Maybe (mapMaybe)
 import qualified Text.Parsec as Parsec
-import Control.Lens ((^.))
 import Types
 import State
 import Parse
