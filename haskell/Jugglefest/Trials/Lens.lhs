@@ -31,7 +31,6 @@ the setters and getters. This will generate them automatically
 > makeLenses ''Skill
 > makeLenses ''Circuit
 > makeLenses ''Juggler
->           
 
 ghci> let s = Skill 3 2 1
 
@@ -72,5 +71,5 @@ ghci> over (jPref.mapped) tail j
 J234 <H:38 E:29 P:20> 2134,1241
 
 ghci> j & jPref.mapped %~ tail
-J234 <H:38 E:29 P:20> 2134,1241   
-   
+J234 <H:38 E:29 P:20> 2134,1241
+
