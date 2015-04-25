@@ -203,11 +203,9 @@ processFile f out = do
   case Parsec.parse parseLines f c of
    Left e -> do putStrLn "Error parsing input:"
                 print e
-   Right r -> outputFile out (unlines $ doStuff r)
+   Right r -> writeFile out (unlines $ doStuff r)
 
-outputFile :: FilePath -> String -> IO ()
-outputFile f s = writeFile f s
-
+doStuff :: [FileLine] -> [String]
 doStuff f = St.evalState foo pd
   where
     pd = ProcessData cMap (mkJMap jugg) (mkOutM circ) s jugg []
@@ -221,11 +219,11 @@ doStuff f = St.evalState foo pd
     mkOutM = Map.fromList . map (\c -> (c^.cName, []))
     mkJMap = Map.fromList . map (\j -> (j^.jName, j))
 
+foo :: PDState [String]
 foo = do
   assignAllJugglers
   c <- Lens.use circMap
-  lines <- convertToLine [] (Map.elems c)
-  return lines
+  convertToLine [] (Map.elems c)
 
 assignAllJugglers :: PDState ()
 assignAllJugglers = do
@@ -236,7 +234,6 @@ assignAllJugglers = do
   l <- Lens.use lost
   assignLostJugglers c l
 
-
 assignLostJugglers :: [CircuitName] -> [Juggler] -> PDState ()
 assignLostJugglers _ [] = return ()
 assignLostJugglers cAll@(c:cs) (j:js) = do
@@ -246,7 +243,7 @@ assignLostJugglers cAll@(c:cs) (j:js) = do
    Nothing -> error $ "assignLostJugglers: " ++ show cLen
    Just cl -> do
      circuits.at c %= fmap (j<|)
-     if (cl + 1 < s)
+     if cl + 1 < s
        then assignLostJugglers cAll js
        else assignLostJugglers cs js
 
@@ -255,7 +252,7 @@ convertToLine acc [] = return acc
 convertToLine acc (c:cs) = do
   let cn = c^.cName
   jugglers <- getJuggFromCirc cn
-  let line = cn ++ ' ' : (intercalate "," (map (show) jugglers))
+  let line = cn ++ ' ' : intercalate "," (map show jugglers)
   convertToLine (line : acc) cs
 
 main = processFile "jugglefest.txt" "jugglefest.out.txt"
