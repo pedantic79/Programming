@@ -3,18 +3,18 @@ import qualified Control.Lens as Lens
 import Control.Lens ((^.),(%=),(.=),(<|),at,_1,_2,_head,_tail)
 import Control.Monad (when)
 import qualified Control.Monad.State as St
-import Data.Either (Either, lefts, rights)
+import qualified Data.Either as Either
 import Data.List (intercalate,sort)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (mapMaybe)
 import qualified Text.Parsec as Parsec
 import Text.Parsec ((<|>),(<?>))
 import Text.Printf (printf)
-import Debug.Trace
 
 type CircuitName = String
 type JugglerName = String
-type FileLine = Either Circuit JugglerRaw
+type Parser = Parsec.Parsec String ()
+type FileLine = Either.Either Circuit JugglerRaw
 type PDState = St.State ProcessData
 type CircuitDP = (CircuitName, Int)
 
@@ -38,8 +38,7 @@ instance Show (Circuit) where
   show (Circuit cn sk) = cn ++ " " ++ show sk
 
 instance Show (JugglerRaw) where
-  show (JugglerRaw jn sk cns) = jn ++ " " ++ show sk ++ " " ++ showCNList cns
-    where showCNList n = "[" ++ intercalate "," n ++ "]"
+  show (JugglerRaw jn sk cns) = unwords [jn, show sk, show cns]
 
 instance Show (Juggler) where
   show (Juggler jn _ dps) = jn ++ " " ++ unwords m
@@ -53,8 +52,6 @@ data ProcessData = ProcessData
                    , _toProcess :: [Juggler]
                    , _lost :: [Juggler]
                    } deriving (Show)
-
-
 
 -- Use TH calls to create our lenses
 Lens.makeLenses ''Skill
@@ -79,20 +76,15 @@ getDP j = case _jCircDP j of
 class DPCalc a where
   getSkill :: (DPCalc a) => a -> Skill
   dotProduct :: (DPCalc a, DPCalc b) => a -> b -> Int
-  dotProduct x y = s^.h*t^.h  +  s^.e*t^.e  +  s^.p*t^.p
-    where s = getSkill x
-          t = getSkill y
+  dotProduct u v = a*x + b*y + c*z
+    where Skill a b c = getSkill u
+          Skill x y z = getSkill v
 
-instance DPCalc (JugglerRaw) where
-  getSkill jr = jr^.jrSkill
+instance DPCalc (JugglerRaw) where getSkill = _jrSkill
+instance DPCalc (Circuit) where getSkill = _cSkill
+instance DPCalc (Skill) where getSkill = id
 
-instance DPCalc (Circuit) where
-  getSkill c = c^.cSkill
-
-instance DPCalc (Skill) where
-  getSkill = id
-
-parseSkill :: Parsec.Parsec String () Skill
+parseSkill :: Parser Skill
 parseSkill = do
   Parsec.string " H:"
   h <- Parsec.many1 Parsec.digit
@@ -103,17 +95,17 @@ parseSkill = do
   return (Skill (str2Int h) (str2Int e) (str2Int p))
   where str2Int s = read s :: Int
 
-parseCircuit :: Parsec.Parsec String () Circuit
+parseCircuit :: Parser Circuit
 parseCircuit = do
   Parsec.string "C "
   name <- Parsec.many1 Parsec.alphaNum
   sk <- parseSkill
   return (Circuit name sk)
 
-parseCL :: Parsec.Parsec String () [CircuitName]
+parseCL :: Parser [CircuitName]
 parseCL = Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
 
-parseJuggler :: Parsec.Parsec String () JugglerRaw
+parseJuggler :: Parser JugglerRaw
 parseJuggler = do
   Parsec.string "J "
   name <- Parsec.many1 Parsec.alphaNum
@@ -122,7 +114,7 @@ parseJuggler = do
   cl <- parseCL
   return (JugglerRaw name sk cl)
 
-parseLine :: Parsec.Parsec String () FileLine
+parseLine :: Parser FileLine
 parseLine = do
     c <- parseCircuit
     return (Left c)
@@ -131,7 +123,7 @@ parseLine = do
     return (Right j)
   <|> (eol >> parseLine)
 
-parseLines :: Parsec.Parsec String () [FileLine]
+parseLines :: Parser [FileLine]
 parseLines = Parsec.endBy parseLine eol
 
 eol =   Parsec.try (Parsec.string "\n\r")
@@ -213,8 +205,7 @@ doStuff :: [FileLine] -> [String]
 doStuff f = St.evalState foo pd
   where
     pd = ProcessData cMap (mkJMap jugg) (mkOutM circ) s jugg []
-    circ = lefts f
-    juggRaw = rights f
+    (circ, juggRaw) = Either.partitionEithers f
     cMap = mkCMap circ
     jugg = map (calcJuggDP cMap) juggRaw
     lenNum = fromIntegral . length
