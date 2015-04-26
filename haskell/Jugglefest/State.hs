@@ -1,7 +1,7 @@
 module State (assign) where
 import qualified Control.Lens as Lens
 import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
-import Control.Monad (when)
+import Control.Monad (liftM,when)
 import Data.List (intercalate,sort)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (catMaybes,listToMaybe)
@@ -9,19 +9,14 @@ import Types
 import Lens
 
 getJuggler :: JugglerName -> PDState (Maybe Juggler)
-getJuggler jn = do
-  j <- Lens.use juggMap
-  return (Map.lookup jn j)
+getJuggler jn = liftM (Map.lookup jn) $ Lens.use juggMap
 
 getFirstToProcess :: PDState (Maybe Juggler)
-getFirstToProcess = do
-  jList <- Lens.use toProcess
-  return (listToMaybe jList)
+getFirstToProcess = liftM listToMaybe $ Lens.use toProcess
 
 getJuggFromCirc :: CircuitName -> PDState [Juggler]
 getJuggFromCirc cn = do
   circMap <- Lens.use circuits
-  let jList = Map.lookup cn circMap
   case Map.lookup cn circMap of
    Nothing -> error $ "getJuggFromCirc: " ++ show cn
    Just js -> return js
@@ -30,8 +25,8 @@ getCircuitLen :: CircuitName -> PDState (Maybe Int)
 getCircuitLen cn =
   if null cn
   then return Nothing
-  else do jList <- getJuggFromCirc cn
-          return (Just (length jList))
+  else do len <- liftM length $ getJuggFromCirc cn
+          return (Just len)
 
 addJuggler :: CircuitName -> Juggler -> PDState ()
 addJuggler cn j = do
@@ -40,8 +35,7 @@ addJuggler cn j = do
 
 removeLowJuggler :: CircuitName -> PDState Juggler
 removeLowJuggler cn = do
-  jList <- getJuggFromCirc cn
-  let sList = sort jList
+  sList <- liftM sort $ getJuggFromCirc cn
   circuits.at cn .= return (tail sList)
   return $ Lens.over jCircDP tail (head sList)
 
@@ -58,16 +52,16 @@ assignJuggler = do
       Nothing -> lost %= (j:)
       Just len -> do
         s <- Lens.use size
-        when (len > s) $
-          removeLowJuggler cn >>= \oldJ -> toProcess %= (oldJ:)
+        when (len > s) $ do
+          oldJ <- removeLowJuggler cn
+          toProcess %= (oldJ:)
      assignJuggler
 
 assignAllJugglers :: PDState ()
 assignAllJugglers = do
   assignJuggler
-  cMap <- Lens.use circuits
   s <- Lens.use size
-  let c = Map.keys $ Map.filter (\l -> length l < s) cMap
+  c <- liftM (Map.keys . Map.filter (\l -> length l < s)) $ Lens.use circuits
   l <- Lens.use lost
   assignLostJugglers c l
 
