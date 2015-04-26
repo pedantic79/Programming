@@ -22,11 +22,10 @@ getJuggFromCirc cn = do
    Just js -> return js
 
 getCircuitLen :: CircuitName -> PDState (Maybe Int)
-getCircuitLen cn =
-  if null cn
-  then return Nothing
-  else do len <- liftM length $ getJuggFromCirc cn
-          return (Just len)
+getCircuitLen [] = return Nothing
+getCircuitLen cn = do
+  len <- liftM length $ getJuggFromCirc cn
+  return (Just len)
 
 addJuggler :: CircuitName -> Juggler -> PDState ()
 addJuggler cn j = do
