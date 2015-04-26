@@ -1,7 +1,7 @@
 module State (assign) where
 import qualified Control.Lens as Lens
 import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
-import Control.Monad (liftM,when)
+import Control.Monad (liftM,liftM2,when)
 import Data.List (intercalate,sort)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (catMaybes,listToMaybe)
@@ -44,7 +44,7 @@ assignJuggler = do
   mJ <- getFirstToProcess
   case mJ of
    Nothing -> return ()
-   Just j -> do
+   Just j  -> do
      let cn = j^.jCircDP._head._1
      addJuggler cn j
      mLen <- getCircuitLen cn
@@ -60,10 +60,11 @@ assignJuggler = do
 assignAllJugglers :: PDState ()
 assignAllJugglers = do
   assignJuggler
-  s <- Lens.use size
-  c <- liftM (Map.keys . Map.filter (\l -> length l < s)) $ Lens.use circuits
+  c <- liftM2 fn (Lens.use size) (Lens.use circuits)
   l <- Lens.use lost
   assignLostJugglers c l
+  where
+    fn s = Map.keys . Map.filter (\l -> length l < s)
 
 assignLostJugglers :: [CircuitName] -> [Juggler] -> PDState ()
 assignLostJugglers _ [] = return ()

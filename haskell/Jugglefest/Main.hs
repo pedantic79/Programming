@@ -5,10 +5,9 @@ import qualified Data.Either as Either
 import qualified Data.Map.Strict as Map
 import Data.Maybe (mapMaybe)
 import qualified Text.Parsec as Parsec
-import Types (CircuitName,FileLine,dotProduct)
-import Types (Circuit(..),Juggler(..),JugglerRaw(..),ProcessData(..))
-import State (assign)
-import Parse (parseLines)
+import Types
+import State
+import Parse
 
 calcJuggDP :: Map.Map CircuitName Circuit -> JugglerRaw -> Juggler
 calcJuggDP cMap jr = Juggler (jrName jr) (jrSkill jr) dps
