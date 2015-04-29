@@ -25,7 +25,7 @@ mkProcessData :: [Circuit] -> [JugglerRaw] -> ProcessData
 mkProcessData c jr = ProcessData cMap jMap oMap s jugg []
   where
     lenNum = fromIntegral . length
-    mapMkMap fn = Map.fromList . map fn
+    mapMkMap = (Map.fromList .) . map
     s = ceiling (lenNum jr / lenNum c)
     jugg = map (calcJuggDP cMap) jr
     cMap = mapMkMap (cName &&& id) c
