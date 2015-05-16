@@ -2,27 +2,28 @@ module Main where
 import Control.Monad (when)
 import Text.Printf (printf)
 
-toHexColor :: (Int, Int, Int) -> String
-toHexColor (r,g,b) = printf "%02x/%02x/%02x" r g b
+data Color = Color { r :: Int, g :: Int, b :: Int }
 
-colors :: [(Int, Int, Int)]
+instance Show (Color) where
+  show (Color r g b) = printf "%02x/%02x/%02x" r g b
+
+colors :: [Color]
 colors = produceRGB [0, 95, 135, 175, 215, 255]
-  where produceRGB l = [ (r,g,b) | r <- l, g <- l, b <- l ]
+  where produceRGB l = [ Color r g b | r <- l, g <- l, b <- l ]
 
-simple :: [(Int, Int, Int)]
+simple :: [Color]
 simple = produceRGB [0, 191] ++ produceRGB [64, 255]
-  where produceRGB l = [ (r,g,b) | b <- l, g <- l, r <- l ]
+  where produceRGB l = [ Color r g b | b <- l, g <- l, r <- l ]
 
-grey :: [(Int, Int, Int)]
+grey :: [Color]
 grey = produceRGB [8, 18..240]
-  where produceRGB l = [ (c,c,c) | c <- l ]
+  where produceRGB l = [ Color c c c | c <- l ]
 
-colorsToData :: [(Int, Int, Int)] -> Int -> [(Int, String, Bool)]
-colorsToData colorList start = colorsToData' colorList 0
+colorsToData :: Int -> [Color] -> [(Int, String, Bool)]
+colorsToData start = colorsToData' 0
   where
-    colorsToData' (c:cs) i = datum : colorsToData' cs (i + 1)
-      where datum = (start + i, hexColor, newLine)
-            hexColor = toHexColor c
+    colorsToData' i (c:cs) = datum : colorsToData' (i + 1) cs
+      where datum = (start + i, show c, newLine)
             newLine = i `mod` 6 == 5
     colorsToData' _ _ = []
 
@@ -32,12 +33,12 @@ printColor (color, hex, newLine) = do
   putStr $ printf "\o33[38;5;%dm%s\o33[0m  " color hex
   when newLine $ putStrLn ""
 
-printColors :: [(Int, Int, Int)] -> Int -> IO ()
-printColors colorList start = mapM_ printColor $ colorsToData colorList start
+printColors :: Int -> [Color] -> IO ()
+printColors = (mapM_ printColor .) . colorsToData
 
 main :: IO ()
 main = do
---  printColors simple 0
+--  printColors 0 simple
 --  putStrLn ""
-  printColors colors 16
-  printColors grey 232
+  printColors 16 colors
+  printColors 232 grey
