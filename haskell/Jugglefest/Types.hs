@@ -6,15 +6,13 @@ module Types
        , JugglerName
        , JugglerRaw(..)
        , ProcessData(..)
-       , PDState(..)
+       , PDState
        , Skill(..)
        , dotProduct
        ) where
-import qualified Control.Lens as Lens
 import qualified Control.Monad.State as St
 import qualified Data.Either as Either
 import qualified Data.Map.Strict as Map
-import qualified Text.Parsec as Parsec
 
 type CircuitName = String
 type JugglerName = String
@@ -36,7 +34,7 @@ data Juggler = Juggler
                }
 
 instance Show (Skill) where
-  show (Skill h e p) = "<" ++ (unwords . map show $ [h,e,p]) ++ ">"
+  show (Skill h' e' p') = "<" ++ (unwords . map show $ [h',e',p']) ++ ">"
 
 instance Show (Circuit) where
   show (Circuit cn sk) = unwords [cn, show sk]
@@ -66,7 +64,7 @@ instance Ord (Juggler) where
 getDP :: Juggler -> Maybe Int
 getDP j = case _jCircDP j of
            [] -> Nothing
-           ((_,p):_) -> Just p
+           ((_,dp):_) -> Just dp
 
 -- Allow us to calculate dot products of anything that has skill
 -- We use lenses so we need to wait until after the makeLenses

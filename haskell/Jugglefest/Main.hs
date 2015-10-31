@@ -18,12 +18,13 @@ processFile :: FilePath -> FilePath -> IO ()
 processFile f o = do
   c <- readFile f
   case Parsec.parse parseLines f c of
-   Left e -> putStrLn "Error parsing input:" >> print e
+   Left l -> putStrLn "Error parsing input:" >> print l
    Right r -> writeFile o (unlines $ evaluate r)
 
 mkProcessData :: [Circuit] -> [JugglerRaw] -> ProcessData
 mkProcessData c jr = ProcessData cMap jMap oMap s jugg []
   where
+    lenNum :: [a] -> Double
     lenNum = fromIntegral . length
     mapMkMap = (Map.fromList .) . map
     s = ceiling (lenNum jr / lenNum c)
@@ -37,6 +38,6 @@ evaluate f = St.evalState assign $
              mkProcessData circuits rawJugglers
   where (circuits, rawJugglers) = Either.partitionEithers f
 
-
+main :: IO()
 main = processFile "jugglefest.txt" "jugglefest.out.txt"
 -- grep ^C1970 jugglefest.out.txt | sed 's/J/\n/g' | awk '!/^C/ {print $1}' |  awk '{total=total+$1} END{print total}'

@@ -16,8 +16,8 @@ getFirstToProcess = liftM listToMaybe $ Lens.use toProcess
 
 getJuggFromCirc :: CircuitName -> PDState [Juggler]
 getJuggFromCirc cn = do
-  circMap <- Lens.use circuits
-  case Map.lookup cn circMap of
+  circMap' <- Lens.use circuits
+  case Map.lookup cn circMap' of
    Nothing -> error $ "getJuggFromCirc: " ++ show cn
    Just js -> return js
 
@@ -67,6 +67,7 @@ assignAllJugglers = do
 
 assignLostJugglers :: [CircuitName] -> [Juggler] -> PDState ()
 assignLostJugglers _ [] = return ()
+assignLostJugglers [] _ = return ()
 assignLostJugglers cAll@(c:cs) (j:js) = do
   cLen <- getCircuitLen c
   s <- Lens.use size

@@ -1,6 +1,5 @@
 module Parse (parseLines) where
 
-import qualified Data.Either as Either
 import qualified Text.Parsec as Parsec
 import Text.Parsec ((<|>),(<?>))
 import Types
@@ -10,12 +9,12 @@ type Parser = Parsec.Parsec String ()
 parseSkill :: Parser Skill
 parseSkill = do
   Parsec.string " H:"
-  h <- Parsec.many1 Parsec.digit
+  h' <- Parsec.many1 Parsec.digit
   Parsec.string " E:"
-  e <- Parsec.many1 Parsec.digit
+  e' <- Parsec.many1 Parsec.digit
   Parsec.string " P:"
-  p <- Parsec.many1 Parsec.digit
-  return (Skill (str2Int h) (str2Int e) (str2Int p))
+  p' <- Parsec.many1 Parsec.digit
+  return (Skill (str2Int h') (str2Int e') (str2Int p'))
   where str2Int s = read s :: Int
 
 parseCircuit :: Parser Circuit
@@ -49,6 +48,7 @@ parseLine = do
 parseLines :: Parser [FileLine]
 parseLines = Parsec.endBy parseLine eol
 
+eol :: Parser String
 eol =   Parsec.try (Parsec.string "\n\r")
     <|> Parsec.try (Parsec.string "\r\n")
     <|> Parsec.string "\n"
