@@ -1,27 +1,30 @@
+import com.pholser.junit.quickcheck.Property
+import com.pholser.junit.quickcheck.runner.JUnitQuickcheck
 import org.junit.Assert.*
+import org.junit.runner.RunWith
 
 /**
  * Created by dnn on 8/16/16.
  */
+
+fun checkSingleSwap(ar: Array<Int>): Boolean {
+    var count = 0
+    val cp = ar.copyOf()
+    cp.sort()
+
+    for (i in ar.indices) {
+        if (ar[i] != cp[i]) count++
+    }
+
+    if (count > 2) return false
+    return true
+}
+
+fun ae(ar: Array<Int>) {
+    assertEquals(checkSingleSwap(ar), checkArray(ar))
+}
+
 class ArraySwapKtTest {
-
-    fun checkSingleSwap(ar: Array<Int>): Boolean {
-        var count = 0
-        val cp = ar.copyOf()
-        cp.sort()
-
-        for (i in ar.indices) {
-            if (ar[i] != cp[i]) count++
-        }
-
-        if (count > 2) return false
-        return true
-    }
-
-    fun ae(ar: Array<Int>) {
-        assertEquals(checkSingleSwap(ar), checkArray(ar))
-    }
-
     @org.junit.Test
     fun checkArray() {
         ae(arrayOf(1, 2, 3))
@@ -48,4 +51,14 @@ class ArraySwapKtTest {
         ae(arrayOf(5, 5, 5, 5, 3))
     }
 
+}
+
+
+@RunWith(JUnitQuickcheck::class)
+class SymmetricKeyCryptographyProperties {
+    @Property
+    fun decryptReversesEncrypt(a: Array<Int>) {
+
+        ae(a)
+    }
 }
