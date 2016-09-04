@@ -21,12 +21,14 @@ processFile f o = do
    Left l -> putStrLn "Error parsing input:" >> print l
    Right r -> writeFile o (unlines $ evaluate r)
 
+mapMkMap :: Ord k => (a -> (k, v)) -> [a] ->  Map.Map k v
+mapMkMap = (Map.fromList .) . map
+
 mkProcessData :: [Circuit] -> [JugglerRaw] -> ProcessData
 mkProcessData c jr = ProcessData cMap jMap oMap s jugg []
   where
     lenNum :: [a] -> Double
     lenNum = fromIntegral . length
-    mapMkMap = (Map.fromList .) . map
     s = ceiling (lenNum jr / lenNum c)
     jugg = map (calcJuggDP cMap) jr
     cMap = mapMkMap (cName &&& id) c

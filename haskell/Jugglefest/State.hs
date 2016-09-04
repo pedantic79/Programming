@@ -22,7 +22,7 @@ getJuggFromCirc cn = do
    Just js -> return js
 
 getCircuitLen :: CircuitName -> PDState (Maybe Int)
-getCircuitLen [] = return Nothing
+getCircuitLen (CircuitName []) = return Nothing
 getCircuitLen cn = do
   len <- liftM length $ getJuggFromCirc cn
   return (Just len)
@@ -85,7 +85,7 @@ convertToLine acc (c:cs) = do
   let cn = cName c
   jugglers <- getJuggFromCirc cn
   pristine <- mapM (getJuggler . jName) jugglers
-  let line = cn ++ ' ' : intercalate "," (map show . catMaybes $ pristine)
+  let line = show cn ++ ' ' : intercalate "," (map show . catMaybes $ pristine)
   convertToLine (line : acc) cs
 
 assign :: PDState [String]

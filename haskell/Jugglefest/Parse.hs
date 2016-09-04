@@ -22,10 +22,12 @@ parseCircuit = do
   Parsec.string "C "
   name <- Parsec.many1 Parsec.alphaNum
   sk <- parseSkill
-  return (Circuit name sk)
+  return (Circuit (CircuitName name) sk)
 
 parseCircList :: Parser [CircuitName]
-parseCircList = Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
+parseCircList = do
+  str <- Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
+  return $ fmap CircuitName str
 
 parseJuggler :: Parser JugglerRaw
 parseJuggler = do
@@ -34,7 +36,7 @@ parseJuggler = do
   sk <- parseSkill
   Parsec.space
   cl <- parseCircList
-  return (JugglerRaw name sk cl)
+  return (JugglerRaw (JugglerName name) sk cl)
 
 parseLine :: Parser FileLine
 parseLine = do

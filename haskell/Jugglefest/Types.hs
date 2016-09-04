@@ -1,9 +1,11 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Types
        ( Circuit(..)
-       , CircuitName
+       , CircuitName(..)
        , FileLine
        , Juggler(..)
-       , JugglerName
+       , JugglerName(..)
        , JugglerRaw(..)
        , ProcessData(..)
        , PDState
@@ -13,9 +15,10 @@ module Types
 import qualified Control.Monad.State as St
 import qualified Data.Either as Either
 import qualified Data.Map.Strict as Map
+import qualified Data.Monoid as Mon
 
-type CircuitName = String
-type JugglerName = String
+newtype CircuitName = CircuitName String deriving (Eq, Mon.Monoid, Ord)
+newtype JugglerName = JugglerName String deriving (Eq, Ord)
 type FileLine = Either.Either Circuit JugglerRaw
 type PDState = St.State ProcessData
 type CircuitDP = (CircuitName, Int)
@@ -33,18 +36,24 @@ data Juggler = Juggler
                , _jCircDP :: [CircuitDP]
                }
 
+instance Show (CircuitName) where
+  show (CircuitName s) = s
+
+instance Show (JugglerName) where
+  show (JugglerName s) = s
+
 instance Show (Skill) where
   show (Skill h' e' p') = "<" ++ (unwords . map show $ [h',e',p']) ++ ">"
 
 instance Show (Circuit) where
-  show (Circuit cn sk) = unwords [cn, show sk]
+  show (Circuit cn sk) = unwords [show cn, show sk]
 
 instance Show (JugglerRaw) where
-  show (JugglerRaw jn sk cns) = unwords [jn, show sk, show cns]
+  show (JugglerRaw jn sk cns) = unwords [show jn, show sk, show cns]
 
 instance Show (Juggler) where
-  show (Juggler jn _ dps) = unwords (jn:m)
-    where m = map (\(x,y) -> x ++ ":" ++ show y) dps
+  show (Juggler jn _ dps) = unwords ((show jn):m)
+    where m = map (\(x,y) -> show x ++ ":" ++ show y) dps
 
 data ProcessData = ProcessData
                    { _circMap :: Map.Map CircuitName Circuit
