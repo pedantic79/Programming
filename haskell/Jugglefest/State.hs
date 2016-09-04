@@ -1,5 +1,3 @@
-{-# ANN module "HLint: ignore Use fmap" #-}
-
 module State (assign) where
 import qualified Control.Lens as Lens
 import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
@@ -11,6 +9,8 @@ import qualified Data.Map.Strict as Map
 import Data.Maybe (catMaybes,listToMaybe,fromMaybe)
 import Types
 import Lens
+
+{-# ANN module "HLint: ignore Use fmap" #-}
 
 getJuggler :: JugglerName -> PDState (Maybe Juggler)
 getJuggler jn = Lens.use $ juggMap.at jn

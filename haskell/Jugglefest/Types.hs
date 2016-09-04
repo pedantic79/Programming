@@ -78,12 +78,12 @@ getDP j = case _jCircDP j of
 -- Allow us to calculate dot products of anything that has skill
 -- We use lenses so we need to wait until after the makeLenses
 class DPCalc a where
-  getSkill :: (DPCalc a) => a -> Skill
-  dotProduct :: (DPCalc a, DPCalc b) => a -> b -> Int
+  getSkill :: a -> Skill
+  dotProduct :: (DPCalc b) => a -> b -> Int
   dotProduct u v = a*x + b*y + c*z
     where Skill a b c = getSkill u
           Skill x y z = getSkill v
 
 instance DPCalc JugglerRaw where getSkill = jrSkill
-instance DPCalc Circuit where getSkill = cSkill
-instance DPCalc Skill where getSkill = id
+instance DPCalc Circuit    where getSkill = cSkill
+instance DPCalc Skill      where getSkill = id
