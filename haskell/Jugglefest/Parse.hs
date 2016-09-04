@@ -1,5 +1,6 @@
 module Parse (parseLines) where
 
+import Control.Monad (liftM)
 import qualified Text.Parsec as Parsec
 import Text.Parsec ((<|>),(<?>))
 import Types
@@ -27,7 +28,7 @@ parseCircuit = do
 parseCircList :: Parser [CircuitName]
 parseCircList = do
   str <- Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
-  return $ fmap CircuitName str
+  return $ liftM CircuitName str
 
 parseJuggler :: Parser JugglerRaw
 parseJuggler = do

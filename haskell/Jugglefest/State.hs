@@ -1,7 +1,9 @@
 module State (assign) where
 import qualified Control.Lens as Lens
 import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
-import Control.Monad (liftM,liftM2,when)
+import Control.Monad (liftM,liftM2,forM, mzero,when)
+import Control.Monad.Trans (lift)
+import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import Data.List (intercalate,sort)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (catMaybes,listToMaybe)
@@ -21,15 +23,13 @@ getJuggFromCirc cn = do
    Nothing -> error $ "getJuggFromCirc: " ++ show cn
    Just js -> return js
 
-getCircuitLen :: CircuitName -> PDState (Maybe Int)
-getCircuitLen (CircuitName []) = return Nothing
-getCircuitLen cn = do
-  len <- liftM length $ getJuggFromCirc cn
-  return (Just len)
+getCircuitLen :: CircuitName -> MaybeT PDState Int
+getCircuitLen (CircuitName []) = mzero
+getCircuitLen cn = liftM length . lift . getJuggFromCirc $ cn
 
 addJuggler :: CircuitName -> Juggler -> PDState ()
 addJuggler cn j = do
-  circuits.at cn %= fmap (j<|)
+  circuits.at cn %= liftM (j<|) -- (<|) = cons
   toProcess %= tail
 
 removeLowJuggler :: CircuitName -> PDState Juggler
@@ -46,7 +46,7 @@ assignJuggler = do
    Just j  -> do
      let cn = j^.jCircDP._head._1
      addJuggler cn j
-     mLen <- getCircuitLen cn
+     mLen <- runMaybeT . getCircuitLen $ cn
      case mLen of
       Nothing -> lost %= (j:)
       Just len -> do
@@ -66,30 +66,32 @@ assignAllJugglers = do
     fn s = Map.keys . Map.filter (\l -> length l < s)
 
 assignLostJugglers :: [CircuitName] -> [Juggler] -> PDState ()
-assignLostJugglers _ [] = return ()
-assignLostJugglers [] _ = return ()
+assignLostJugglers  _ [ ] = return ()
+assignLostJugglers [ ] _ = return ()
 assignLostJugglers cAll@(c:cs) (j:js) = do
-  cLen <- getCircuitLen c
+  cLen <- runMaybeT . getCircuitLen $ c
   s <- Lens.use size
   case cLen of
    Nothing -> error $ "assignLostJugglers: " ++ show cLen
    Just cl -> do
-     circuits.at c %= fmap (j<|)
+     circuits.at c %= liftM (j<|)
      if cl + 1 < s
        then assignLostJugglers cAll js
        else assignLostJugglers cs js
 
-convertToLine :: [String] -> [Circuit] -> PDState [String]
-convertToLine acc [] = return acc
-convertToLine acc (c:cs) = do
-  let cn = cName c
-  jugglers <- getJuggFromCirc cn
-  pristine <- mapM (getJuggler . jName) jugglers
-  let line = show cn ++ ' ' : intercalate "," (map show . catMaybes $ pristine)
-  convertToLine (line : acc) cs
+convertToLine :: [Circuit] -> PDState [String]
+convertToLine cs = liftM reverse $ forM cs go
+  where
+    go c = do
+      let cn = cName c
+      jugglers <-getJuggFromCirc cn
+      pristine <- mapM (getJuggler . jName) jugglers
+      let commas = intercalate "," (map show . catMaybes $ pristine)
+      let line = show cn ++ ' ' : commas
+      return line
 
 assign :: PDState [String]
 assign = do
   assignAllJugglers
   c <- Lens.use circMap
-  convertToLine [] (Map.elems c)
+  convertToLine (Map.elems c)
