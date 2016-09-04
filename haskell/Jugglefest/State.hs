@@ -6,22 +6,23 @@ import Control.Monad.Trans (lift)
 import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import Data.List (intercalate,sort)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (catMaybes,listToMaybe)
+import Data.Maybe (catMaybes,listToMaybe,fromMaybe)
 import Types
 import Lens
 
 getJuggler :: JugglerName -> PDState (Maybe Juggler)
-getJuggler jn = liftM (Map.lookup jn) $ Lens.use juggMap
+getJuggler jn = Lens.use $ juggMap.(at jn)
+
+getCircuits :: CircuitName -> PDState (Maybe [Juggler])
+getCircuits cn = Lens.use $ circuits.(at cn)
 
 getFirstToProcess :: PDState (Maybe Juggler)
 getFirstToProcess = liftM listToMaybe $ Lens.use toProcess
 
 getJuggFromCirc :: CircuitName -> PDState [Juggler]
-getJuggFromCirc cn = do
-  circMap' <- Lens.use circuits
-  case Map.lookup cn circMap' of
-   Nothing -> error $ "getJuggFromCirc: " ++ show cn
-   Just js -> return js
+getJuggFromCirc cn = liftM (fromMaybe err) (getCircuits cn)
+  where
+   err = error $ "getJuggFromCirc: " ++ show cn
 
 getCircuitLen :: CircuitName -> MaybeT PDState Int
 getCircuitLen (CircuitName []) = mzero
@@ -80,11 +81,11 @@ assignLostJugglers cAll@(c:cs) (j:js) = do
        else assignLostJugglers cs js
 
 convertToLine :: [Circuit] -> PDState [String]
-convertToLine cs = liftM reverse $ forM cs go
+convertToLine cs = forM cs go
   where
     go c = do
       let cn = cName c
-      jugglers <-getJuggFromCirc cn
+      jugglers <- getJuggFromCirc cn
       pristine <- mapM (getJuggler . jName) jugglers
       let commas = intercalate "," (map show . catMaybes $ pristine)
       let line = show cn ++ ' ' : commas
