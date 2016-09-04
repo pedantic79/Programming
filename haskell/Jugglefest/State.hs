@@ -1,3 +1,5 @@
+{-# ANN module "HLint: ignore Use fmap" #-}
+
 module State (assign) where
 import qualified Control.Lens as Lens
 import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
@@ -11,10 +13,10 @@ import Types
 import Lens
 
 getJuggler :: JugglerName -> PDState (Maybe Juggler)
-getJuggler jn = Lens.use $ juggMap.(at jn)
+getJuggler jn = Lens.use $ juggMap.at jn
 
 getCircuits :: CircuitName -> PDState (Maybe [Juggler])
-getCircuits cn = Lens.use $ circuits.(at cn)
+getCircuits cn = Lens.use $ circuits.at cn
 
 getFirstToProcess :: PDState (Maybe Juggler)
 getFirstToProcess = liftM listToMaybe $ Lens.use toProcess

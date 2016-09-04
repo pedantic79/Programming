@@ -1,3 +1,4 @@
+{-# ANN module "HLint: ignore Use fmap" #-}
 module Parse (parseLines) where
 
 import Control.Monad (liftM)

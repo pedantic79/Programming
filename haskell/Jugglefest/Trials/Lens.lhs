@@ -14,13 +14,13 @@
 >                        }
 
 
-> instance Show (Skill) where
+> instance Show Skill where
 >   show (Skill h e p) = printf "<H:%d E:%d P:%d>" h e p
 > 
-> instance Show (Circuit) where
+> instance Show Circuit where
 >   show (Circuit cn sk) = cn ++ " " ++ show sk
 > 
-> instance Show (Juggler) where
+> instance Show Juggler where
 >   show (Juggler jn sk cns) = jn ++ " " ++ show sk ++ " " ++ showCNList cns
 >     where showCNList = intercalate ","
 > 

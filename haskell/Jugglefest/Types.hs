@@ -36,23 +36,23 @@ data Juggler = Juggler
                , _jCircDP :: [CircuitDP]
                }
 
-instance Show (CircuitName) where
+instance Show CircuitName where
   show (CircuitName s) = s
 
-instance Show (JugglerName) where
+instance Show JugglerName where
   show (JugglerName s) = s
 
-instance Show (Skill) where
+instance Show Skill where
   show (Skill h' e' p') = "<" ++ (unwords . map show $ [h',e',p']) ++ ">"
 
-instance Show (Circuit) where
+instance Show Circuit where
   show (Circuit cn sk) = unwords [show cn, show sk]
 
-instance Show (JugglerRaw) where
+instance Show JugglerRaw where
   show (JugglerRaw jn sk cns) = unwords [show jn, show sk, show cns]
 
-instance Show (Juggler) where
-  show (Juggler jn _ dps) = unwords ((show jn):m)
+instance Show Juggler where
+  show (Juggler jn _ dps) = unwords (show jn:m)
     where m = map (\(x,y) -> show x ++ ":" ++ show y) dps
 
 data ProcessData = ProcessData
@@ -64,10 +64,10 @@ data ProcessData = ProcessData
                    , _lost :: [Juggler]
                    } deriving (Show)
 
-instance Eq (Juggler) where
+instance Eq Juggler where
   (==) x y = getDP x == getDP y
 
-instance Ord (Juggler) where
+instance Ord Juggler where
   (<=) x y = getDP x <= getDP y
 
 getDP :: Juggler -> Maybe Int
@@ -84,6 +84,6 @@ class DPCalc a where
     where Skill a b c = getSkill u
           Skill x y z = getSkill v
 
-instance DPCalc (JugglerRaw) where getSkill = jrSkill
-instance DPCalc (Circuit) where getSkill = cSkill
-instance DPCalc (Skill) where getSkill = id
+instance DPCalc JugglerRaw where getSkill = jrSkill
+instance DPCalc Circuit where getSkill = cSkill
+instance DPCalc Skill where getSkill = id
