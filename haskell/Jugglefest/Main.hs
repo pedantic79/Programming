@@ -11,7 +11,7 @@ import Parse
 
 calcJuggDP :: Map.Map CircuitName Circuit -> JugglerRaw -> Juggler
 calcJuggDP cMap jr = Juggler (jrName jr) (jrSkill jr) dps
-  where dps = map (cName &&& dotProduct jr) cList
+  where dps = fmap (cName &&& dotProduct jr) cList
         cList = mapMaybe (`Map.lookup` cMap) (jrPref jr)
 
 processFile :: FilePath -> FilePath -> IO ()
@@ -22,7 +22,7 @@ processFile f o = do
    Right r -> writeFile o (unlines $ evaluate r)
 
 mapMkMap :: Ord k => (a -> (k, v)) -> [a] ->  Map.Map k v
-mapMkMap = (Map.fromList .) . map
+mapMkMap = (Map.fromList .) . fmap
 
 mkProcessData :: [Circuit] -> [JugglerRaw] -> ProcessData
 mkProcessData c jr = ProcessData cMap jMap oMap s jugg []
@@ -30,7 +30,7 @@ mkProcessData c jr = ProcessData cMap jMap oMap s jugg []
     lenNum :: [a] -> Double
     lenNum = fromIntegral . length
     s = ceiling (lenNum jr / lenNum c)
-    jugg = map (calcJuggDP cMap) jr
+    jugg = fmap (calcJuggDP cMap) jr
     cMap = mapMkMap (cName &&& id) c
     jMap = mapMkMap (jName &&& id) jugg
     oMap = mapMkMap (\x -> (cName x, [])) c

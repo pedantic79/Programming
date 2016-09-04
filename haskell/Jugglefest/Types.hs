@@ -43,7 +43,8 @@ instance Show JugglerName where
   show (JugglerName s) = s
 
 instance Show Skill where
-  show (Skill h' e' p') = "<" ++ (unwords . map show $ [h',e',p']) ++ ">"
+  show (Skill h' e' p') = "<" `mappend` str `mappend` ">"
+    where str = unwords . fmap show $ [h',e',p']
 
 instance Show Circuit where
   show (Circuit cn sk) = unwords [show cn, show sk]
@@ -53,7 +54,7 @@ instance Show JugglerRaw where
 
 instance Show Juggler where
   show (Juggler jn _ dps) = unwords (show jn:m)
-    where m = map (\(x,y) -> show x ++ ":" ++ show y) dps
+    where m = fmap (\(x,y) -> show x `mappend` ":" `mappend` show y) dps
 
 data ProcessData = ProcessData
                    { _circMap :: Map.Map CircuitName Circuit

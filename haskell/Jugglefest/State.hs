@@ -1,4 +1,5 @@
 module State (assign) where
+import Data.Monoid (mappend)
 import qualified Control.Lens as Lens
 import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
 import Control.Monad (liftM,liftM2,forM, mzero,when)
@@ -24,7 +25,7 @@ getFirstToProcess = liftM listToMaybe $ Lens.use toProcess
 getJuggFromCirc :: CircuitName -> PDState [Juggler]
 getJuggFromCirc cn = liftM (fromMaybe err) (getCircuits cn)
   where
-   err = error $ "getJuggFromCirc: " ++ show cn
+   err = error $ "getJuggFromCirc: " `mappend` show cn
 
 getCircuitLen :: CircuitName -> MaybeT PDState Int
 getCircuitLen (CircuitName []) = mzero
@@ -75,7 +76,7 @@ assignLostJugglers cAll@(c:cs) (j:js) = do
   cLen <- runMaybeT . getCircuitLen $ c
   s <- Lens.use size
   case cLen of
-   Nothing -> error $ "assignLostJugglers: " ++ show cLen
+   Nothing -> error $ "assignLostJugglers: " `mappend` show cLen
    Just cl -> do
      circuits.at c %= liftM (j<|)
      if cl + 1 < s
@@ -90,7 +91,7 @@ convertToLine cs = forM cs go
       jugglers <- getJuggFromCirc cn
       pristine <- mapM (getJuggler . jName) jugglers
       let commas = intercalate "," (map show . catMaybes $ pristine)
-      let line = show cn ++ ' ' : commas
+      let line = show cn `mappend` (' ' : commas)
       return line
 
 assign :: PDState [String]

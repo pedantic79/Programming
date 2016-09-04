@@ -1,6 +1,6 @@
 module Parse (parseLines) where
 
-import Control.Monad (liftM)
+import Control.Monad (liftM,mapM)
 import qualified Text.Parsec as Parsec
 import Text.Parsec ((<|>),(<?>))
 import Types
