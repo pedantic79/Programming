@@ -46,19 +46,23 @@ assignJuggler :: PDState ()
 assignJuggler = do
   mJ <- getFirstToProcess
   case mJ of
-   Nothing -> return ()
-   Just j  -> do
-     let cn = j^.jCircDP._head._1
-     addJuggler cn j
-     mLen <- runMaybeT . getCircuitLen $ cn
-     case mLen of
-      Nothing -> lost %= (j:)
-      Just len -> do
-        s <- Lens.use size
-        when (len > s) $ do
-          oldJ <- removeLowJuggler cn
-          toProcess %= (oldJ:)
-     assignJuggler
+    Nothing -> return ()
+    Just j  -> assignFirstJuggler j
+
+assignFirstJuggler :: Juggler -> PDState ()
+assignFirstJuggler j = do
+  let cn = j^.jCircDP._head._1
+  addJuggler cn j
+  mLen <- runMaybeT . getCircuitLen $ cn
+  case mLen of
+    Nothing -> lost %= (j:)
+    Just len -> do
+      s <- Lens.use size
+      when (len > s) $ do
+        oldJ <- removeLowJuggler cn
+        toProcess %= (oldJ:)
+  assignJuggler
+
 
 assignAllJugglers :: PDState ()
 assignAllJugglers = do
