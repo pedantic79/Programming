@@ -1,15 +1,16 @@
 import org.junit.Assert.*
+import org.junit.Test
 
 /**
  * Created by dnn on 9/5/16.
  */
 class IntegerPowTest {
-    @org.junit.Test
+    @Test
     fun fracPow() {
-
+        println(org.github.pedantic79.fracPow(2, 512))
     }
 
-    @org.junit.Test
+    @Test
     fun numPow() {
 
     }

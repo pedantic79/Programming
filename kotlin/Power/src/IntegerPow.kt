@@ -33,4 +33,4 @@ private tailrec fun f(x: BigInteger, y: Long): BigInteger =
 private tailrec fun g(x: BigInteger, y: Long, z: BigInteger): BigInteger =
         if (y.isEven()) { g((x * x), (y / 2), z) }
         else if (y == 1L) { x * z }
-        else { g((x * x), (y / 2), x) }
+        else { g((x * x), ((y - 1)/ 2), x * z) }

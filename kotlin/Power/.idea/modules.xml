@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Power.iml" filepath="$PROJECT_DIR$/Power.iml" />
+      <module fileurl="file://$PROJECT_DIR$/pow-benchmark/pow-benchmark.iml" filepath="$PROJECT_DIR$/pow-benchmark/pow-benchmark.iml" />
     </modules>
   </component>
 </project>

@@ -9,7 +9,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="library" name="org.apache.commons:commons-math3:3.6.1" level="project" />
+    <orderEntry type="library" name="org.apache.commons:commons-math3:Latest" level="project" />
     <orderEntry type="library" name="junit:junit:4.12" level="project" />
   </component>
 </module>
