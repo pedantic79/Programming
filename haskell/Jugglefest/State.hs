@@ -1,5 +1,4 @@
 module State (assign) where
-import Data.Monoid (mappend)
 import qualified Control.Lens as Lens
 import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
 import Control.Monad (liftM,liftM2,forM, mzero,when)
@@ -8,6 +7,8 @@ import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import Data.List (intercalate,sort)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (catMaybes,listToMaybe,fromMaybe)
+import Data.Monoid (mappend)
+import GHC.Stack
 import Types
 import Lens
 
@@ -23,7 +24,7 @@ getFirstToProcess :: PDState (Maybe Juggler)
 getFirstToProcess = liftM listToMaybe $ Lens.use toProcess
 
 getJuggFromCirc :: CircuitName -> PDState [Juggler]
-getJuggFromCirc cn = liftM (fromMaybe err) (getCircuits cn)
+getJuggFromCirc cn = liftM (fromMaybe err) $ getCircuits cn
   where
    err = error $ "getJuggFromCirc: " `mappend` show cn
 
@@ -62,7 +63,6 @@ assignFirstJuggler j = do
         oldJ <- removeLowJuggler cn
         toProcess %= (oldJ:)
   assignJuggler
-
 
 assignAllJugglers :: PDState ()
 assignAllJugglers = do
