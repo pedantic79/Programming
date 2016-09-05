@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="integerpow">
+    <output-path>$PROJECT_DIR$/out/artifacts/integerpow</output-path>
+    <root id="archive" name="integerpow.jar">
+      <element id="module-output" name="Power" />
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+      </element>
+    </root>
+  </artifact>
+</component>
