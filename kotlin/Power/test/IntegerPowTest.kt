@@ -7,7 +7,7 @@ import org.junit.Test
 class IntegerPowTest {
     @Test
     fun fracPow() {
-        println(org.github.pedantic79.fracPowBI(2, 512))
+        println(org.github.pedantic79.fracPowD(2.0, 512))
     }
 
     @Test

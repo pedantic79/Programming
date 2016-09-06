@@ -24,7 +24,8 @@ fun numPowBI(x: Long, y: Long): BigInteger  {
 }
 
 private fun doPowBI(x: BigInteger, y: Long): BigInteger =
-        if (y == 0L) { BigInteger.ONE } else { f(x, y) }
+        if (y == 0L) { BigInteger.ONE }
+        else         { f(x, y) }
 
 private tailrec fun f(x: BigInteger, y: Long): BigInteger =
         if (y.isEven())   { f((x * x), (y / 2)) }
@@ -32,6 +33,6 @@ private tailrec fun f(x: BigInteger, y: Long): BigInteger =
         else              { g((x * x), (y / 2), x) }
 
 private tailrec fun g(x: BigInteger, y: Long, z: BigInteger): BigInteger =
-        if (y.isEven()) { g((x * x), (y / 2), z) }
+        if (y.isEven())   { g((x * x), (y / 2), z) }
         else if (y == 1L) { x * z }
-        else { g((x * x), ((y - 1)/ 2), x * z) }
+        else              { g((x * x), ((y - 1)/ 2), x * z) }
