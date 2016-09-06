@@ -32,6 +32,18 @@ public class PowBenchmark {
 
     @Benchmark
     @Fork(1)
+    public void testDanBI_3_31() {
+        org.github.pedantic79.Pow.doublePowBI(3, 31);
+    }
+
+    @Benchmark
+    @Fork(1)
+    public void testDanBI_2_31() {
+        org.github.pedantic79.Pow.doublePowBI(2, 31);
+    }
+
+    @Benchmark
+    @Fork(1)
     public void testDanBI_1_30000() {
         org.github.pedantic79.Pow.doublePowBI(1, 30000);
     }
@@ -44,13 +56,18 @@ public class PowBenchmark {
 
     @Benchmark
     @Fork(1)
-    public void testDanBI_3_31() {
-        org.github.pedantic79.Pow.doublePowBI(3, 31);
-    }
+    public void testDanL_1_31() { org.github.pedantic79.Pow.doublePowL(1, 31); }
 
     @Benchmark
     @Fork(1)
-    public void testDanL_1_31() { org.github.pedantic79.Pow.doublePowL(1, 31); }
+    public void testDanL_2_31() { org.github.pedantic79.Pow.doublePowL(2, 31); }
+
+    @Benchmark
+    @Fork(1)
+    public void testDanL_3_31() {
+        org.github.pedantic79.Pow.doublePowL(3, 31);
+    }
+
 
     @Benchmark
     @Fork(1)
@@ -66,14 +83,20 @@ public class PowBenchmark {
 
     @Benchmark
     @Fork(1)
-    public void testDanL_3_31() {
-        org.github.pedantic79.Pow.doublePowL(3, 31);
+    public void testJosh_1_31() {
+        org.github.joshsmak.Josh.powerOptimized(1, 31);
     }
 
     @Benchmark
     @Fork(1)
-    public void testJosh_1_31() {
-        org.github.joshsmak.Josh.powerOptimized(1, 31);
+    public void testJosh_2_31() {
+        org.github.joshsmak.Josh.powerOptimized(2, 31);
+    }
+
+    @Benchmark
+    @Fork(1)
+    public void testJosh_3_31() {
+        org.github.joshsmak.Josh.powerOptimized(3, 31);
     }
 
     @Benchmark
@@ -88,10 +111,5 @@ public class PowBenchmark {
         org.github.joshsmak.Josh.powerOptimized(3, 3);
     }
 
-    @Benchmark
-    @Fork(1)
-    public void testJosh_3_31() {
-        org.github.joshsmak.Josh.powerOptimized(3, 31);
-    }
 
 }

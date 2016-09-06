@@ -23,16 +23,23 @@ public class Josh {
             exponents[count] = 1;
             values[count++] = x;
             while (exponents[count - 1] << 1 <= absY) {
-                exponents[count] = exponents[count - 1] << 1;
-                values[count] = values[count - 1] * values[count - 1];
+                exponents[count] = exponents[count -1] << 1;
+                values[count] =  values[count -1] * values[count - 1];
                 lastIndex = count;
+                if (Double.isInfinite(values[count])) {
+                    if (flip) return 0.0;
+                    else {
+                        if (x < 0 && y % 2 != 0) return Double.NEGATIVE_INFINITY;
+                        return Double.POSITIVE_INFINITY;
+                    }
+                }
                 count++;
 
             }
             long myY = absY - exponents[lastIndex];
             pow = values[lastIndex--];
             while (myY != 0) {
-                while (exponents[lastIndex] > myY) lastIndex--;
+                while(exponents[lastIndex] > myY) lastIndex--;
                 myY = myY - exponents[lastIndex];
                 pow = pow * values[lastIndex];
             }
