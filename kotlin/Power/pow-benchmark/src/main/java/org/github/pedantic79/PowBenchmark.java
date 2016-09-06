@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 //@Warmup(iterations = 1)
 //@Measurement(iterations = 2)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-//@SuppressWarnings("unused")
+@SuppressWarnings("unused")
 public class PowBenchmark {
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
@@ -28,27 +28,46 @@ public class PowBenchmark {
 
     @Benchmark
     @Fork(1)
-    public void testDan_1_31() {
-        org.github.pedantic79.IntegerPow.fracPow(1, 31);
+    public void testDanBI_1_31() { org.github.pedantic79.Pow.doublePowBI(1, 31); }
+
+    @Benchmark
+    @Fork(1)
+    public void testDanBI_1_30000() {
+        org.github.pedantic79.Pow.doublePowBI(1, 30000);
     }
 
     @Benchmark
     @Fork(1)
-    public void testDan_1_30000() {
-        org.github.pedantic79.IntegerPow.fracPow(1, 30000);
-    }
-
-
-    @Benchmark
-    @Fork(1)
-    public void testDan_3_3() {
-        org.github.pedantic79.IntegerPow.fracPow(3, 3);
+    public void testDanBI_3_3() {
+        org.github.pedantic79.Pow.doublePowBI(3, 3);
     }
 
     @Benchmark
     @Fork(1)
-    public void testDan_3_31() {
-        org.github.pedantic79.IntegerPow.fracPow(3, 31);
+    public void testDanBI_3_31() {
+        org.github.pedantic79.Pow.doublePowBI(3, 31);
+    }
+
+    @Benchmark
+    @Fork(1)
+    public void testDanL_1_31() { org.github.pedantic79.Pow.doublePowL(1, 31); }
+
+    @Benchmark
+    @Fork(1)
+    public void testDanL_1_30000() {
+        org.github.pedantic79.Pow.doublePowL(1, 30000);
+    }
+
+    @Benchmark
+    @Fork(1)
+    public void testDanL_3_3() {
+        org.github.pedantic79.Pow.doublePowL(3, 3);
+    }
+
+    @Benchmark
+    @Fork(1)
+    public void testDanL_3_31() {
+        org.github.pedantic79.Pow.doublePowL(3, 31);
     }
 
     @Benchmark
