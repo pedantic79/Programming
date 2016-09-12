@@ -1,6 +1,6 @@
 module Parse (parseLines) where
 
-import Control.Monad (liftM,mapM)
+import Control.Monad (liftM)
 import qualified Text.Parsec as Parsec
 import Text.Parsec ((<|>),(<?>))
 import Types
@@ -11,20 +11,20 @@ type Parser = Parsec.Parsec String ()
 
 parseSkill :: Parser Skill
 parseSkill = do
-  Parsec.string " H:"
+  _  <- Parsec.string " H:"
   h' <- Parsec.many1 Parsec.digit
-  Parsec.string " E:"
+  _  <- Parsec.string " E:"
   e' <- Parsec.many1 Parsec.digit
-  Parsec.string " P:"
+  _  <- Parsec.string " P:"
   p' <- Parsec.many1 Parsec.digit
   return (Skill (str2Int h') (str2Int e') (str2Int p'))
   where str2Int s = read s :: Int
 
 parseCircuit :: Parser Circuit
 parseCircuit = do
-  Parsec.string "C "
+  _    <- Parsec.string "C "
   name <- Parsec.many1 Parsec.alphaNum
-  sk <- parseSkill
+  sk   <- parseSkill
   return (Circuit (CircuitName name) sk)
 
 parseCircList :: Parser [CircuitName]
@@ -34,11 +34,11 @@ parseCircList = do
 
 parseJuggler :: Parser JugglerRaw
 parseJuggler = do
-  Parsec.string "J "
+  _    <-Parsec.string "J "
   name <- Parsec.many1 Parsec.alphaNum
-  sk <- parseSkill
-  Parsec.space
-  cl <- parseCircList
+  sk   <- parseSkill
+  _    <- Parsec.space
+  cl   <- parseCircList
   return (JugglerRaw (JugglerName name) sk cl)
 
 parseLine :: Parser FileLine

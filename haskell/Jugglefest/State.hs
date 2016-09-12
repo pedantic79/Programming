@@ -8,7 +8,6 @@ import Data.List (intercalate,sort)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (catMaybes,listToMaybe,fromMaybe)
 import Data.Monoid (mappend)
-import GHC.Stack
 import Types
 import Lens
 
