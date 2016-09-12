@@ -1,7 +1,7 @@
 module State (assign) where
 import qualified Control.Lens as Lens
 import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
-import Control.Monad (liftM,liftM2,forM, mzero,when)
+import Control.Monad (liftM, liftM2, forM, forM_, mzero, when)
 import Control.Monad.Trans (lift)
 import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import Data.List (intercalate,sort)
@@ -45,9 +45,7 @@ removeLowJuggler cn = do
 assignJuggler :: PDState ()
 assignJuggler = do
   mJ <- getFirstToProcess
-  case mJ of
-    Nothing -> return ()
-    Just j  -> assignFirstJuggler j
+  forM_ mJ assignFirstJuggler
 
 assignFirstJuggler :: Juggler -> PDState ()
 assignFirstJuggler j = do

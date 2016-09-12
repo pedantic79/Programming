@@ -1,6 +1,6 @@
 module Parse (parseLines) where
 
-import Control.Monad (liftM)
+import Control.Applicative (liftA, (<$>), (*>))
 import qualified Text.Parsec as Parsec
 import Text.Parsec ((<|>),(<?>))
 import Types
@@ -28,9 +28,7 @@ parseCircuit = do
   return (Circuit (CircuitName name) sk)
 
 parseCircList :: Parser [CircuitName]
-parseCircList = do
-  str <- Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
-  return $ liftM CircuitName str
+parseCircList = liftA CircuitName <$> Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
 
 parseJuggler :: Parser JugglerRaw
 parseJuggler = do
@@ -42,13 +40,9 @@ parseJuggler = do
   return (JugglerRaw (JugglerName name) sk cl)
 
 parseLine :: Parser FileLine
-parseLine = do
-    c <- parseCircuit
-    return (Left c)
-  <|> do
-    j <- parseJuggler
-    return (Right j)
-  <|> (eol >> parseLine)
+parseLine = Left  <$> parseCircuit
+        <|> Right <$> parseJuggler
+        <|> (eol *> parseLine)
 
 parseLines :: Parser [FileLine]
 parseLines = Parsec.endBy parseLine eol
