@@ -1,15 +1,17 @@
 module State (assign) where
 import qualified Control.Lens as Lens
+import qualified Data.Map.Strict as Map
+
 import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
 import Control.Monad (liftM, liftM2, forM, forM_, mzero, when)
 import Control.Monad.Trans (lift)
 import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import Data.List (intercalate,sort)
-import qualified Data.Map.Strict as Map
 import Data.Maybe (catMaybes,listToMaybe,fromMaybe)
 import Data.Monoid (mappend)
-import Types
+
 import Lens
+import Types
 
 {-# ANN module "HLint: ignore Use fmap" #-}
 

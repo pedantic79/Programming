@@ -1,7 +1,7 @@
 module Parse (parseLines) where
 
-import Control.Applicative (liftA, (<$>), (*>))
 import qualified Text.Parsec as Parsec
+import Control.Applicative (liftA, (<$>), (*>))
 import Text.Parsec ((<|>),(<?>))
 import Types
 

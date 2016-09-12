@@ -1,13 +1,15 @@
 module Main where
-import Control.Arrow ((&&&))
 import qualified Control.Monad.State as St
 import qualified Data.Either as Either
 import qualified Data.Map.Strict as Map
-import Data.Maybe (mapMaybe)
 import qualified Text.Parsec as Parsec
-import Types
-import State
+
+import Control.Arrow ((&&&))
+import Data.Maybe (mapMaybe)
+
 import Parse
+import State
+import Types
 
 calcJuggDP :: Map.Map CircuitName Circuit -> JugglerRaw -> Juggler
 calcJuggDP cMap jr = Juggler (jrName jr) (jrSkill jr) dps
