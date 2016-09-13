@@ -12,6 +12,7 @@ module Types
        , Skill(..)
        , dotProduct
        ) where
+import qualified Control.Monad.Identity as Id
 import qualified Control.Monad.State as St
 import qualified Data.Either as Either
 import qualified Data.Map.Strict as Map
@@ -20,7 +21,7 @@ import qualified Data.Monoid as Mon
 newtype CircuitName = CircuitName String deriving (Eq, Mon.Monoid, Ord)
 newtype JugglerName = JugglerName String deriving (Eq, Ord)
 type FileLine = Either.Either Circuit JugglerRaw
-type PDState = St.State ProcessData
+type PDState = St.StateT ProcessData Id.Identity
 type CircuitDP = (CircuitName, Int)
 
 data Skill = Skill { h :: Int, e :: Int, p :: Int }

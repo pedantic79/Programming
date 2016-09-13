@@ -1,4 +1,5 @@
 module Main where
+import qualified Control.Monad.Identity as Id
 import qualified Control.Monad.State as St
 import qualified Data.Either as Either
 import qualified Data.Map.Strict as Map
@@ -38,7 +39,7 @@ mkProcessData c jr = ProcessData cMap jMap oMap s jugg []
     oMap = mapMkMap (\x -> (cName x, [])) c
 
 evaluate :: [FileLine] -> [String]
-evaluate f = St.evalState assign $
+evaluate f = Id.runIdentity . St.evalStateT assign $
              mkProcessData circuits rawJugglers
   where (circuits, rawJugglers) = Either.partitionEithers f
 
