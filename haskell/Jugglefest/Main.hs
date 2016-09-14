@@ -1,10 +1,12 @@
 module Main where
 import qualified Control.Monad.Identity as Id
 import qualified Control.Monad.State as St
+import qualified Control.Monad.Trans.Either as EitherT
 import qualified Data.Either as Either
 import qualified Data.Map.Strict as Map
 import qualified Text.Parsec as Parsec
 
+import Control.Monad.Trans.Class (lift)
 import Control.Arrow ((&&&))
 import Data.Maybe (mapMaybe)
 
@@ -17,12 +19,12 @@ calcJuggDP cMap jr = Juggler (jrName jr) (jrSkill jr) dps
   where dps = fmap (cName &&& dotProduct jr) cList
         cList = mapMaybe (`Map.lookup` cMap) (jrPref jr)
 
-processFile :: FilePath -> FilePath -> IO ()
+processFile :: FilePath -> FilePath -> EitherT.EitherT String IO ()
 processFile f o = do
-  c <- readFile f
+  c <- lift $ readFile f
   case Parsec.parse parseLines f c of
-   Left l -> putStrLn "Error parsing input:" >> print l
-   Right r -> writeFile o (unlines $ evaluate r)
+    Left l  -> EitherT.left . show $ l
+    Right r -> lift . writeFile o . unlines . evaluate $ r
 
 mapMkMap :: Ord k => (a -> (k, v)) -> [a] ->  Map.Map k v
 mapMkMap = (Map.fromList .) . fmap
@@ -44,5 +46,9 @@ evaluate f = Id.runIdentity . St.evalStateT assign $
   where (circuits, rawJugglers) = Either.partitionEithers f
 
 main :: IO()
-main = processFile "jugglefest.txt" "jugglefest.out.txt"
+main = do
+  et <- EitherT.runEitherT $ processFile "jugglefest.txt" "jugglefest.out.txt"
+  case et of
+    Left l -> putStrLn l
+    Right _ -> return ()
 -- grep ^C1970 jugglefest.out.txt | sed 's/J/\n/g' | awk '!/^C/ {print $1}' |  awk '{total=total+$1} END{print total}'
