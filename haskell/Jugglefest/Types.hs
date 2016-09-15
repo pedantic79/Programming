@@ -18,6 +18,8 @@ import qualified Data.Either as Either
 import qualified Data.Map.Strict as Map
 import qualified Data.Monoid as Mon
 
+import Data.Monoid ((<>))
+
 newtype CircuitName = CircuitName String deriving (Eq, Mon.Monoid, Ord)
 newtype JugglerName = JugglerName String deriving (Eq, Ord)
 type FileLine = Either.Either Circuit JugglerRaw
@@ -44,7 +46,7 @@ instance Show JugglerName where
   show (JugglerName s) = s
 
 instance Show Skill where
-  show (Skill h' e' p') = "<" `mappend` str `mappend` ">"
+  show (Skill h' e' p') = "<" <> str <> ">"
     where str = unwords . fmap show $ [h',e',p']
 
 instance Show Circuit where
@@ -55,7 +57,7 @@ instance Show JugglerRaw where
 
 instance Show Juggler where
   show (Juggler jn _ dps) = unwords (show jn:m)
-    where m = fmap (\(x,y) -> show x `mappend` ":" `mappend` show y) dps
+    where m = fmap (\(x,y) -> show x <> ":" <> show y) dps
 
 data ProcessData = ProcessData
                    { _circMap :: Map.Map CircuitName Circuit

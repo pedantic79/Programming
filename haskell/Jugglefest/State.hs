@@ -3,12 +3,12 @@ import qualified Control.Lens as Lens
 import qualified Data.Map.Strict as Map
 
 import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
-import Control.Monad (liftM, liftM2, forM, forM_, mzero, when)
+import Control.Monad (liftM, forM, forM_, mzero, when)
 import Control.Monad.Trans (lift)
 import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import Data.List (intercalate,sort)
 import Data.Maybe (catMaybes,listToMaybe,fromMaybe)
-import Data.Monoid (mappend)
+import Data.Monoid ((<>))
 
 import Lens
 import Types
@@ -18,16 +18,16 @@ import Types
 getJuggler :: JugglerName -> PDState (Maybe Juggler)
 getJuggler jn = Lens.use $ juggMap.at jn
 
-getCircuits :: CircuitName -> PDState (Maybe [Juggler])
-getCircuits cn = Lens.use $ circuits.at cn
+getCircuit :: CircuitName -> PDState (Maybe [Juggler])
+getCircuit cn = Lens.use $ circuits.at cn
 
 getFirstToProcess :: PDState (Maybe Juggler)
-getFirstToProcess = liftM listToMaybe $ Lens.use toProcess
+getFirstToProcess = listToMaybe <$> Lens.use toProcess
 
 getJuggFromCirc :: CircuitName -> PDState [Juggler]
-getJuggFromCirc cn = liftM (fromMaybe err) $ getCircuits cn
+getJuggFromCirc cn = fromMaybe err <$> getCircuit cn
   where
-   err = error $ "getJuggFromCirc: " `mappend` show cn
+   err = error $ "getJuggFromCirc: " <> show cn
 
 getCircuitLen :: CircuitName -> MaybeT PDState Int
 getCircuitLen (CircuitName []) = mzero
@@ -40,9 +40,9 @@ addJuggler cn j = do
 
 removeLowJuggler :: CircuitName -> PDState Juggler
 removeLowJuggler cn = do
-  sList <- liftM sort $ getJuggFromCirc cn
-  circuits.at cn .= return (tail sList)
-  return $ Lens.over jCircDP tail (head sList)
+  (s:xs) <- sort <$> getJuggFromCirc cn
+  circuits.at cn .= return xs
+  return $ Lens.over jCircDP tail s
 
 assignJuggler :: PDState ()
 assignJuggler = do
@@ -66,7 +66,7 @@ assignFirstJuggler j = do
 assignAllJugglers :: PDState ()
 assignAllJugglers = do
   assignJuggler
-  c <- liftM2 fn (Lens.use size) (Lens.use circuits)
+  c <- fn <$> Lens.use size <*> Lens.use circuits
   l <- Lens.use lost
   assignLostJugglers c l
   where
@@ -79,12 +79,12 @@ assignLostJugglers cAll@(c:cs) (j:js) = do
   cLen <- runMaybeT . getCircuitLen $ c
   s <- Lens.use size
   case cLen of
-   Nothing -> error $ "assignLostJugglers: " `mappend` show cLen
-   Just cl -> do
-     circuits.at c %= liftM (j<|)
-     if cl + 1 < s
-       then assignLostJugglers cAll js
-       else assignLostJugglers cs js
+    Nothing -> error $ "assignLostJugglers: " <> show cLen
+    Just cl -> do
+      circuits.at c %= liftM (j<|)
+      if cl + 1 < s
+        then assignLostJugglers cAll js
+        else assignLostJugglers cs js
 
 convertToLine :: [Circuit] -> PDState [String]
 convertToLine cs = forM cs go
@@ -94,11 +94,10 @@ convertToLine cs = forM cs go
       jugglers <- getJuggFromCirc cn
       pristine <- mapM (getJuggler . jName) jugglers
       let commas = intercalate "," (map show . catMaybes $ pristine)
-      let line = show cn `mappend` (' ' : commas)
+      let line = show cn <> (' ' : commas)
       return line
 
 assign :: PDState [String]
 assign = do
   assignAllJugglers
-  c <- Lens.use circMap
-  convertToLine (Map.elems c)
+  convertToLine =<< Map.elems <$> Lens.use circMap
