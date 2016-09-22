@@ -27,7 +27,7 @@ getFirstToProcess = listToMaybe <$> Lens.use toProcess
 getJuggFromCirc :: CircuitName -> PDState [Juggler]
 getJuggFromCirc cn = fromMaybe err <$> getCircuit cn
   where
-   err = error $ "getJuggFromCirc: " <> show cn
+   err = error $ "getJuggFromCirc: [" <> show cn <> "]"
 
 getCircuitLen :: CircuitName -> MaybeT PDState Int
 getCircuitLen (CircuitName []) = mzero
@@ -41,7 +41,7 @@ addJuggler cn j = do
 removeLowJuggler :: CircuitName -> PDState Juggler
 removeLowJuggler cn = do
   (s:xs) <- sort <$> getJuggFromCirc cn
-  circuits.at cn .= return xs
+  circuits.at cn .= pure xs
   return $ Lens.over jCircDP tail s
 
 assignJuggler :: PDState ()
@@ -55,12 +55,13 @@ assignFirstJuggler j = do
   addJuggler cn j
   mLen <- runMaybeT . getCircuitLen $ cn
   case mLen of
-    Nothing -> lost %= (j:)
+    -- append j to lost list, because there are no circuits
+    Nothing -> lost %= (j<|)
     Just len -> do
       s <- Lens.use size
       when (len > s) $ do
         oldJ <- removeLowJuggler cn
-        toProcess %= (oldJ:)
+        toProcess %= (oldJ<|)
   assignJuggler
 
 assignAllJugglers :: PDState ()
@@ -74,12 +75,12 @@ assignAllJugglers = do
 
 assignLostJugglers :: [CircuitName] -> [Juggler] -> PDState ()
 assignLostJugglers  _ [ ] = return ()
-assignLostJugglers [ ] _ = return ()
+assignLostJugglers [ ] _  = return ()
 assignLostJugglers cAll@(c:cs) (j:js) = do
   cLen <- runMaybeT . getCircuitLen $ c
   s <- Lens.use size
   case cLen of
-    Nothing -> error $ "assignLostJugglers: " <> show cLen
+    Nothing -> error $ "assignLostJugglers: [" <> show cLen <> "]"
     Just cl -> do
       circuits.at c %= liftM (j<|)
       if cl + 1 < s
