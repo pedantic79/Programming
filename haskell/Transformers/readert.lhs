@@ -1,14 +1,8 @@
-> {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 > import Control.Exception (IOException, try)
 > import Control.Monad (liftM2)
-> import Control.Monad.Trans (MonadIO, lift)
+> import Control.Monad.Trans (lift)
 > import Control.Monad.Trans.Except (ExceptT(..), runExceptT)
 > import Control.Monad.Trans.Reader (Reader, ReaderT(..), ask, runReader, runReaderT)
-
-> import Control.Monad.Reader (MonadReader)
-> import Control.Monad.Except (MonadError)
-
-
 
 Reader Int stores an Int, and can be retrieved via `ask`.
 In the function `test`, we're passing an Int in and then
@@ -46,8 +40,8 @@ type is the return type of the overall monad stack.
 
 testIO takes a filename and adds the size of that to the
 value stored in the Reader monad. testIO is how it would look
-in do notation. We use `lift` to lift the value from
-the IO operation into the ReaderT
+in do notation. We use `lift` to lift the value from the IO
+operation into the ReaderT
 
 The value from v is already lifted.
 
@@ -59,7 +53,7 @@ The value from v is already lifted.
 
 testIO2 is how you would write testIO without the do in pointfree notation
 
-testIO2 f =  liftM2 (+) ask (lift . fmap length . readFile f)
+testIO2 f =  liftM2 (+) ask (fmap length . readFile f)
 
 > testIO2 :: FilePath -> ReaderT Int IO Int
 > testIO2 = liftM2 (+) ask . lift . fmap length . readFile
@@ -76,6 +70,18 @@ a file that doesn't exist.
 ghci> runTestIO "bad" 0
 *** Exception: bad: openFile: does not exist (No such file or directory)
 
+First we'll create a function that will create a function which safely
+reads the file.
+
+> safeReadFile :: FilePath -> ExceptT IOException IO [Char]
+> safeReadFile = ExceptT . try . readFile
+
+safeReadFileR can also work in-place of safeReadFile, instead we won't need to
+lift after fmap
+
+> safeReadFileR :: FilePath -> ReaderT Int (ExceptT IOException IO) [Char]
+> safeReadFileR = lift . safeReadFile
+
 To handle this, we can use the ExceptT transformer. In testIOSafe, we
 replace the type IO with (ExceptT IOException IO)
 
@@ -84,14 +90,14 @@ wrap our value into a Right or a Left if an exception occurred.
 
 > testIOSafe :: FilePath -> ReaderT Int (ExceptT IOException IO) Int
 > testIOSafe f = do
->   l <- lift . fmap length . ExceptT . try . readFile $ f
+>   l <- fmap length . safeReadFileR $ f
 >   v <- ask
 >   return $ v + l
 
 testIOSafe2 f =  liftM2 (+) ask (lift . fmap length . ExceptT . try . readFile f)
 
 > testIOSafe2 :: FilePath -> ReaderT Int (ExceptT IOException IO) Int
-> testIOSafe2 = liftM2 (+) ask . lift . fmap length . ExceptT . try . readFile
+> testIOSafe2 = liftM2 (+) ask . fmap length . safeReadFileR
 
 Here we are returning an (Either IOException Int)
 
