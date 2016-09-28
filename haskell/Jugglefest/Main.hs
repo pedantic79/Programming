@@ -16,15 +16,14 @@ import Types
 
 calcJuggDP :: Map.Map CircuitName Circuit -> JugglerRaw -> Juggler
 calcJuggDP cMap jr = Juggler (jrName jr) (jrSkill jr) dps
-  where dps = fmap (cName &&& dotProduct jr) cList
-        cList = mapMaybe (`Map.lookup` cMap) (jrPref jr)
+  where
+    dps = fmap (cName &&& dotProduct jr) cList
+    cList = mapMaybe (`Map.lookup` cMap) (jrPref jr)
 
-processFile :: FilePath -> FilePath -> EitherT.EitherT String IO ()
-processFile f o = do
+processFile :: FilePath -> EitherT.EitherT Parsec.ParseError IO [FileLine]
+processFile f = do
   c <- lift $ readFile f
-  case Parsec.parse parseLines f c of
-    Left l  -> EitherT.left . show $ l
-    Right r -> lift . writeFile o . unlines . evaluate $ r
+  EitherT.hoistEither $ Parsec.parse parseLines f c
 
 mapMkMap :: Ord k => (a -> (k, v)) -> [a] ->  Map.Map k v
 mapMkMap = (Map.fromList .) . fmap
@@ -40,15 +39,19 @@ mkProcessData c jr = ProcessData cMap jMap oMap s jugg []
     jMap = mapMkMap (jName &&& id) jugg
     oMap = mapMkMap (\x -> (cName x, [])) c
 
+runProcessData :: PDState a -> ProcessData -> a
+runProcessData = (Id.runIdentity .) . St.evalStateT
+
 evaluate :: [FileLine] -> [String]
-evaluate f = Id.runIdentity . St.evalStateT assign $
-             mkProcessData circuits rawJugglers
-  where (circuits, rawJugglers) = Either.partitionEithers f
+evaluate f = runProcessData assign $ mkProcessData circuits rawJugglers
+  where
+    (circuits, rawJugglers) = Either.partitionEithers f
 
 main :: IO()
 main = do
-  et <- EitherT.runEitherT $ processFile "jugglefest.txt" "jugglefest.out.txt"
+  et <- EitherT.runEitherT $ processFile "jugglefest.txt"
   case et of
-    Left l -> putStrLn l
-    Right _ -> return ()
+    Left  l -> putStrLn . show $ l
+    Right r -> writeFile "jugglefest.out.txt" . unlines . evaluate $ r
+
 -- grep ^C1970 jugglefest.out.txt | sed 's/J/\n/g' | awk '!/^C/ {print $1}' |  awk '{total=total+$1} END{print total}'

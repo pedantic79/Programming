@@ -17,27 +17,33 @@ parseSkill = do
   e' <- Parsec.many1 Parsec.digit
   _  <- Parsec.string " P:"
   p' <- Parsec.many1 Parsec.digit
-  return (Skill (str2Int h') (str2Int e') (str2Int p'))
-  where str2Int s = read s :: Int
+  return $ Skill (str2Int h') (str2Int e') (str2Int p')
+  where
+    str2Int s = read s :: Int
 
 parseCircuit :: Parser Circuit
 parseCircuit = do
   _    <- Parsec.string "C "
   name <- Parsec.many1 Parsec.alphaNum
   sk   <- parseSkill
-  return (Circuit (CircuitName name) sk)
+  return $ Circuit (CircuitName name) sk
+
+-- parseCircuit :: Parser Circuit
+-- parseCircuit = Circuit
+--   <$> (Parsec.string "C " *> liftA CircuitName (Parsec.many1 Parsec.alphaNum))
+--   <*> parseSkill
 
 parseCircList :: Parser [CircuitName]
 parseCircList = liftA CircuitName <$> Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
 
 parseJuggler :: Parser JugglerRaw
 parseJuggler = do
-  _    <-Parsec.string "J "
+  _    <- Parsec.string "J "
   name <- Parsec.many1 Parsec.alphaNum
   sk   <- parseSkill
   _    <- Parsec.space
   cl   <- parseCircList
-  return (JugglerRaw (JugglerName name) sk cl)
+  return $ JugglerRaw (JugglerName name) sk cl
 
 parseLine :: Parser FileLine
 parseLine = Left  <$> parseCircuit
