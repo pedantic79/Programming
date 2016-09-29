@@ -11,9 +11,9 @@ data Storey x f a = Storey x (f a)
 instance Functor f => Functor (Storey x f) where
   fmap f (Storey x fa) = Storey x (fmap f fa)
 
-getStorey (Storey x y) = (x, y)  
+getStorey (Storey x y) = (x, y)
 
-type Lens s a = Functor f => (a -> f a) -> s -> f s
+type Lens s a = forall f . Functor f => (a -> f a) -> s -> f s
 
 ix :: Int -> Lens [a] a
 ix index f list

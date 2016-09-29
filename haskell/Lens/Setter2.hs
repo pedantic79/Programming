@@ -3,7 +3,7 @@
 import Data.Bifunctor
 import Control.Monad
 
-type Lens s a = Monad m => (a -> m a) -> s -> (a, m s)
+type Lens s a = forall m . Monad m => (a -> m a) -> s -> (a, m s)
 
 ix :: Int -> Lens [a] a
 ix index f list

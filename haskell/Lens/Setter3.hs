@@ -3,7 +3,7 @@
 import Data.Bifunctor
 import Control.Applicative
 
-type Lens s a = Functor f => (a -> f a) -> s -> (a, f s)
+type Lens s a = forall f . Functor f => (a -> f a) -> s -> (a, f s)
 
 ix :: Int -> Lens [a] a
 ix index f list
