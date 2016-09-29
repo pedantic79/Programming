@@ -51,7 +51,7 @@ main :: IO()
 main = do
   et <- EitherT.runEitherT $ processFile "jugglefest.txt"
   case et of
-    Left  l -> putStrLn . show $ l
+    Left  l -> print l
     Right r -> writeFile "jugglefest.out.txt" . unlines . evaluate $ r
 
 -- grep ^C1970 jugglefest.out.txt | sed 's/J/\n/g' | awk '!/^C/ {print $1}' |  awk '{total=total+$1} END{print total}'
