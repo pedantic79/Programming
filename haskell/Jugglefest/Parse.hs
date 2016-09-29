@@ -5,45 +5,34 @@ import Control.Applicative (liftA, (<$>), (*>))
 import Text.Parsec ((<|>),(<?>))
 import Types
 
-{-# ANN module "HLint: ignore Use fmap" #-}
-
 type Parser = Parsec.Parsec String ()
 
+parseSkillSub :: String -> Parser Int
+parseSkillSub s = read <$> (Parsec.string s *> Parsec.many1 Parsec.digit)
+
+parseCircuitName :: Parser CircuitName
+parseCircuitName = CircuitName <$> (Parsec.string "C " *> Parsec.many1 Parsec.alphaNum)
+
+parseJugglerName :: Parser JugglerName
+parseJugglerName = JugglerName <$> (Parsec.string "J " *> Parsec.many1 Parsec.alphaNum)
+
 parseSkill :: Parser Skill
-parseSkill = do
-  _  <- Parsec.string " H:"
-  h' <- Parsec.many1 Parsec.digit
-  _  <- Parsec.string " E:"
-  e' <- Parsec.many1 Parsec.digit
-  _  <- Parsec.string " P:"
-  p' <- Parsec.many1 Parsec.digit
-  return $ Skill (str2Int h') (str2Int e') (str2Int p')
-  where
-    str2Int s = read s :: Int
+parseSkill = Skill
+            <$> parseSkillSub " H:"
+            <*> parseSkillSub " E:"
+            <*> parseSkillSub " P:"
 
 parseCircuit :: Parser Circuit
-parseCircuit = do
-  _    <- Parsec.string "C "
-  name <- Parsec.many1 Parsec.alphaNum
-  sk   <- parseSkill
-  return $ Circuit (CircuitName name) sk
-
--- parseCircuit :: Parser Circuit
--- parseCircuit = Circuit
---   <$> (Parsec.string "C " *> liftA CircuitName (Parsec.many1 Parsec.alphaNum))
---   <*> parseSkill
+parseCircuit = Circuit <$> parseCircuitName <*> parseSkill
 
 parseCircList :: Parser [CircuitName]
 parseCircList = liftA CircuitName <$> Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
 
 parseJuggler :: Parser JugglerRaw
-parseJuggler = do
-  _    <- Parsec.string "J "
-  name <- Parsec.many1 Parsec.alphaNum
-  sk   <- parseSkill
-  _    <- Parsec.space
-  cl   <- parseCircList
-  return $ JugglerRaw (JugglerName name) sk cl
+parseJuggler = JugglerRaw
+              <$> parseJugglerName
+              <*> parseSkill
+              <*> (Parsec.space *> parseCircList)
 
 parseLine :: Parser FileLine
 parseLine = Left  <$> parseCircuit
