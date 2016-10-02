@@ -25,6 +25,7 @@ parseSkill = Skill
 parseCircuit :: Parser Circuit
 parseCircuit = Circuit <$> parseCircuitName <*> parseSkill
 
+-- Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ',' :: Parsec [[Char]]
 parseCircList :: Parser [CircuitName]
 parseCircList = liftA CircuitName <$> Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
 
