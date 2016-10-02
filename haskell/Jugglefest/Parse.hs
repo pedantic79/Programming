@@ -36,9 +36,9 @@ parseJuggler = JugglerRaw
               <*> (Parsec.space *> parseCircList)
 
 parseLine :: Parser FileLine
-parseLine = Left  <$> parseCircuit
-        <|> Right <$> parseJuggler
-        <|> (eol *> parseLine)
+parseLine =   Left  <$> parseCircuit
+          <|> Right <$> parseJuggler
+          <|> (eol *> parseLine)
 
 parseLines :: Parser [FileLine]
 parseLines = Parsec.endBy parseLine eol

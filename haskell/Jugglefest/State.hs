@@ -3,7 +3,7 @@ import qualified Control.Lens as Lens
 import qualified Data.Map.Strict as Map
 
 import Control.Lens ((^.),(<|),(%=),(.=),_1,_head,at)
-import Control.Monad (liftM, forM, forM_, mzero, when)
+import Control.Monad (liftM, forM_, mzero, when)
 import Control.Monad.Trans (lift)
 import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import Data.List (intercalate,sort)
@@ -88,7 +88,7 @@ assignLostJugglers cAll@(c:cs) (j:js) = do
         else assignLostJugglers cs js
 
 convertToLine :: [Circuit] -> PDState [String]
-convertToLine cs = forM cs go
+convertToLine = mapM go
   where
     go c = do
       let cn = cName c

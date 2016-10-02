@@ -8,6 +8,7 @@ import qualified Text.Parsec as Parsec
 
 import Control.Monad.Trans.Class (lift)
 import Control.Arrow ((&&&))
+import Data.Function (on)
 import Data.Maybe (mapMaybe)
 import System.Exit (exitWith, ExitCode(..))
 import System.IO (hPrint, stderr)
@@ -15,6 +16,8 @@ import System.IO (hPrint, stderr)
 import Parse
 import State
 import Types
+
+-- (f &&& g) = \x -> (f x, g x)
 
 calcJuggDP :: Map.Map CircuitName Circuit -> JugglerRaw -> Juggler
 calcJuggDP cMap jr = Juggler (jrName jr) (jrSkill jr) dps
@@ -30,24 +33,23 @@ processFile f = do
 mapMkMap :: Ord k => (a -> (k, v)) -> [a] ->  Map.Map k v
 mapMkMap = (Map.fromList .) . fmap
 
+intDiv :: Int -> Int -> Double
+intDiv = (/) `on` fromIntegral
+
 mkProcessData :: [Circuit] -> [JugglerRaw] -> ProcessData
 mkProcessData c jr = ProcessData cMap jMap oMap s jugg []
   where
-    lenNum :: [a] -> Double
-    lenNum = fromIntegral . length
-    s = ceiling (lenNum jr / lenNum c)
+    s = ceiling $ intDiv (length jr) (length c)
     jugg = fmap (calcJuggDP cMap) jr
     cMap = mapMkMap (cName &&& id) c
     jMap = mapMkMap (jName &&& id) jugg
-    oMap = mapMkMap (\x -> (cName x, [])) c
+    oMap = mapMkMap (cName &&& const []) c
 
 runProcessData :: PDState a -> ProcessData -> a
 runProcessData = (Id.runIdentity .) . St.evalStateT
 
 evaluate :: [FileLine] -> [String]
-evaluate f = runProcessData assign $ mkProcessData circuits rawJugglers
-  where
-    (circuits, rawJugglers) = E.partitionEithers f
+evaluate = runProcessData assign . uncurry mkProcessData . E.partitionEithers
 
 main :: IO ()
 main = do

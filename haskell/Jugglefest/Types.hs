@@ -26,13 +26,23 @@ type FileLine = Either.Either Circuit JugglerRaw
 type PDState = St.StateT ProcessData Id.Identity
 type CircuitDP = (CircuitName, Int)
 
-data Skill = Skill { h :: Int, e :: Int, p :: Int }
-data Circuit = Circuit { cName :: CircuitName, cSkill :: Skill }
+data Skill = Skill
+              { h :: Int
+              , e :: Int
+              , p :: Int
+              }
+
+data Circuit = Circuit
+                { cName :: CircuitName
+                , cSkill :: Skill
+                }
+
 data JugglerRaw = JugglerRaw
                   { jrName :: JugglerName
                   , jrSkill :: Skill
                   , jrPref :: [CircuitName]
                   }
+
 data Juggler = Juggler
                { jName :: JugglerName
                , jSkill :: Skill
@@ -60,12 +70,12 @@ instance Show Juggler where
     where m = fmap (\(x,y) -> show x <> ":" <> show y) dps
 
 data ProcessData = ProcessData
-                   { _circMap :: Map.Map CircuitName Circuit
-                   , _juggMap :: Map.Map JugglerName Juggler
-                   , _circuits :: Map.Map CircuitName [Juggler]
-                   , _size :: Int
+                   { _circMap   :: Map.Map CircuitName Circuit
+                   , _juggMap   :: Map.Map JugglerName Juggler
+                   , _circuits  :: Map.Map CircuitName [Juggler]
+                   , _size      :: Int
                    , _toProcess :: [Juggler]
-                   , _lost :: [Juggler]
+                   , _lost      :: [Juggler]
                    } deriving (Show)
 
 instance Eq Juggler where
@@ -76,8 +86,8 @@ instance Ord Juggler where
 
 getDP :: Juggler -> Maybe Int
 getDP j = case _jCircDP j of
-           [] -> Nothing
-           ((_,dp):_) -> Just dp
+            []         -> Nothing
+            ((_,dp):_) -> Just dp
 
 -- Allow us to calculate dot products of anything that has skill
 -- We use lenses so we need to wait until after the makeLenses
