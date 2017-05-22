@@ -42,8 +42,8 @@ unf lls = runST $ do
   let (r,c) = getSizeL lls
   let mineVector = toVector lls
   v <- create r c
-  forM_ [0..r-1] $ \i -> do
-    forM_ [0..c-1] $ \j -> do
+  forM_ [0..r-1] $ \i ->
+    forM_ [0..c-1] $ \j ->
       when ((mineVector V.! i) V.! j)
         (upPair v . filterRange r c $ genPairs i j)
   V.freeze v
@@ -58,4 +58,4 @@ vector2List v = helper l
     c = v V.! 1
     l = V.toList . V.drop 2 $ v
 
-test = (vector2List . unf $ sweep)
+test = vector2List . unf $ sweep
