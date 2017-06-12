@@ -3,9 +3,10 @@ import qualified Data.Vector.Mutable as VM
 import Control.Monad.ST
 import Control.Monad
 
-sweep = [[True,False,False,True],
- [False,False,True,False],
- [True,True,False,True]]
+sweep = [[True, False,False,True]
+        ,[False,False,True, False]
+        ,[True, True, False,True]
+        ]
 
 create r c = do
   v <- VM.new $ r * c + 2
@@ -19,19 +20,17 @@ create r c = do
 
 upPair mv ps = do
   c <- VM.read mv 1
-  up mv (pair2idx c ps)
+  up mv $ pair2idx c ps
   where
     up mv = mapM_ (modify mv (+1))
     pair2idx c = map (\(x,y) -> x * c + y + 2)
 
 modify mv f i = do
   value <- VM.read mv i
-  VM.write mv i (f value)
+  VM.write mv i $ f value
 
--- filterRange :: (Ord a, Num a) => a -> a -> [(a,a)] -> [(a,a)]
 filterRange r c = filter (\(x,y) -> x >= 0 && y >= 0 && x < r && y < c)
 
--- genPairs :: Num a => a -> a -> [(a,a)]
 genPairs r c = [(r-1,c-1), (r-1,c), (r-1,c+1)
                ,(r  ,c-1),          (r  ,c+1)
                ,(r+1,c-1), (r+1,c), (r+1,c+1)
@@ -49,13 +48,12 @@ unf lls = runST $ do
   V.freeze v
   where
     toVector = V.fromList . fmap V.fromList
-    getSizeL ls = (length ls, length (head ls))
+    getSizeL ls = (length ls, length . head $ ls)
 
-vector2List v = helper l
+vector2List v = helper . V.toList . V.drop 2 $ v
   where
     helper [] = []
     helper ls = take c ls:helper (drop c ls)
     c = v V.! 1
-    l = V.toList . V.drop 2 $ v
 
 test = vector2List . unf $ sweep
