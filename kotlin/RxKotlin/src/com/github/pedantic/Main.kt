@@ -4,8 +4,7 @@ import io.reactivex.*
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.rxkotlin.toFlowable
 import io.reactivex.schedulers.Schedulers
-import io.reactivex.Flowable
-
+import io.reactivex.subjects.PublishSubject
 
 
 fun main(args: Array<String>) {
@@ -30,20 +29,19 @@ fun main(args: Array<String>) {
     obs.subscribeOn(Schedulers.computation()).subscribe { v -> println("Observable.create: " + v) }
 
 
-
-    val obs2 = Observable.fromArray(0, 1, 2, 3).map { x -> x + 1}
+    val obs2 = Observable.fromArray(0, 1, 2, 3).map { x -> x + 1 }
     obs2.subscribe { println("Observable.fromArray: " + it) }
     val v: Maybe<Int> = obs2.reduce { x, y -> x + y }
     println("Sum: " + v.blockingGet(0))
 
 
-    Flowable.range(1,10)
+    Flowable.range(1, 10)
             .flatMap {
                 Flowable.just(it)
                         .subscribeOn(Schedulers.computation())
                         .map { x -> x * x }
             }
-            .blockingSubscribe { println("Flatmap: " + it) }
+            .blockingSubscribe { println("Flat map: " + it) }
 
     Flowable.range(1, 10)
             .parallel()
@@ -58,7 +56,32 @@ fun main(args: Array<String>) {
             .map { it.toCharArray().joinToString(separator = "") }
             .scanWith({ "" }, { acc, value -> acc + value })
             .skip(1)
-            .subscribe {println("pi: " + it)}
+            .subscribe { println("pi: " + it) }
+
+    val pipe = PublishSubject.create<Int>().toSerialized()
+
+    pipe.subscribe {
+        println("one: $it")
+    }
+
+    pipe.subscribe {
+        println("two: $it")
+    }
+    Flowable.range(1,5)
+            .subscribeBy(
+                    onNext = { pipe.onNext(it) }
+            )
+
+    pipe.subscribe {
+        println("three: $it")
+    }
+
+    Flowable.range(10,5)
+            .subscribeBy(
+                    onNext = { pipe.onNext(it) },
+                    onComplete = { pipe.onComplete() }
+            )
+
 }
 
 fun piDigits(max: Int): Flowable<Char> =

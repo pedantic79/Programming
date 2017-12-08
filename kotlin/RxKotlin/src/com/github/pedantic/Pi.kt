@@ -11,7 +11,7 @@ package com.github.pedantic
  * to get a running time of O(n^2) instead of O(n^3log(n)^3).
  *
  * This program uses mostly integer arithmetic. It may be slow on some
- * hardware where integer multiplications and divison must be done
+ * hardware where integer multiplications and division must be done
  * by software.
  */
 
