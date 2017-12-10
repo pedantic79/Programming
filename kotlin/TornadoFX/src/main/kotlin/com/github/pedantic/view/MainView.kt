@@ -1,7 +1,7 @@
 package com.github.pedantic.view
 
 import com.github.pedantic.app.EventController
-import com.github.pedantic.piStartingAt
+import com.github.pedantic.app.piStartingAt
 import com.github.thomasnield.rxkotlinfx.actionEvents
 import io.reactivex.Emitter
 import io.reactivex.Observable
@@ -36,20 +36,19 @@ class MainView : View("Pi Calc TornadoFX + RxKotlin") {
                 controller.button.toObservable().subscribe {
 
                     runAsync(daemon = true) {
-                        text = "3."
                         val digits = number.value.toInt()
 
                         val pipe = PublishSubject.create<String>().toSerialized()
 
-                        pipe.scan(0, {x,_ -> x + 1}).subscribe {
-                            percentage.set(it.toDouble()/digits.toDouble())
+                        pipe.scan(0, { x, _ -> x + 1 }).subscribe {
+                            percentage.set(it.toDouble() / digits.toDouble())
                         }
 
-                        pipe.subscribeBy(
-                                onNext = { s -> runAsync(daemon = true) {} success { appendText(s) } },
-                                onComplete = {
-                                    enableButton.set(true)
-                                })
+                        pipe.scan("3.", { x, n -> x + n }).subscribeBy(
+                                onNext = { s -> runAsync(daemon = true) {} success { text = s } },
+                                onComplete = { enableButton.set(true) }
+                        )
+
                         piDigits(digits, pipe)
                     }
                 }
@@ -70,7 +69,6 @@ class MainView : View("Pi Calc TornadoFX + RxKotlin") {
                     }
                 }
                 textfield {
-                    height
                     minHeight = 50.toDouble()
                     minWidth = 500.toDouble()
 
@@ -95,7 +93,7 @@ fun piDigits(max: Int, s: Subject<String>): Subject<String> {
             state + 9
         }
 
-        Observable.generate({1}, gen)
+        Observable.generate({ 1 }, gen)
                 .map { piStartingAt(it) }
                 .flatMap { it.toCharArray().toTypedArray().toObservable() }
                 .take(max.toLong())
