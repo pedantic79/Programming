@@ -13,13 +13,17 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Insets
+import javafx.scene.control.Button
+import javafx.scene.control.TextArea
 import tornadofx.*
+import java.util.concurrent.Semaphore
 
 class MainView : View("Pi Calc TornadoFX + RxKotlin") {
     private val controller: EventController by inject()
     private val enableButton = SimpleBooleanProperty(true)
     private val number = SimpleStringProperty("100")
     private val percentage = SimpleDoubleProperty(0.0)
+    private val onlyOne = Semaphore(1, false)
 
     override val root = vbox()
 
@@ -33,25 +37,7 @@ class MainView : View("Pi Calc TornadoFX + RxKotlin") {
                 isEditable = false
 
 
-                controller.button.toObservable().subscribe {
-
-                    runAsync(daemon = true) {
-                        val digits = number.value.toInt()
-
-                        val pipe = PublishSubject.create<String>().toSerialized()
-
-                        pipe.scan(0, { x, _ -> x + 1 }).subscribe {
-                            percentage.set(it.toDouble() / digits.toDouble())
-                        }
-
-                        pipe.scan("3.", { x, n -> x + n }).subscribeBy(
-                                onNext = { s -> runAsync(daemon = true) {} success { text = s } },
-                                onComplete = { enableButton.set(true) }
-                        )
-
-                        piDigits(digits, pipe)
-                    }
-                }
+                contButtonPushed()
             }
             hbox {
                 maxHeight = 100.toDouble()
@@ -61,7 +47,7 @@ class MainView : View("Pi Calc TornadoFX + RxKotlin") {
 
                     hboxConstraints { margin = Insets(5.0) }
 
-                    controller.button += actionEvents().map { Unit }
+                    contButtonSend()
 
                     enableWhen(enableButton)
                     controller.button.toObservable().subscribe {
@@ -81,6 +67,41 @@ class MainView : View("Pi Calc TornadoFX + RxKotlin") {
                     setMaxSize(100.0, 100.0)
                     bind(percentage)
                 }
+            }
+        }
+    }
+
+    private fun Button.contButtonSend() {
+        controller.button += actionEvents().map { Unit }
+    }
+
+    private fun TextArea.contButtonPushed() {
+        controller.button.toObservable().subscribe {
+
+            runAsync(daemon = true) {
+                val digits = number.value.toInt()
+
+                val pipe = PublishSubject.create<String>().toSerialized()
+
+                pipe.scan(0, { x, _ -> x + 1 }).subscribe {
+                    percentage.set(it.toDouble() / digits.toDouble())
+                }
+
+                pipe.scan("3.", { x, n -> x + n }).subscribeBy(
+                        onNext = { s ->
+                            runAsync(daemon = true) {
+                                println("len ${onlyOne.queueLength} ${s.length}")
+                            } success {
+//                                onlyOne.acquire()
+                                text = s
+//                                Thread.sleep(100)
+//                                onlyOne.release()
+                            }
+                        },
+                        onComplete = { enableButton.set(true) }
+                )
+
+                piDigits(digits, pipe)
             }
         }
     }

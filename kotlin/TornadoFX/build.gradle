@@ -1,3 +1,4 @@
+
 buildscript {
     ext.kotlin_version = '1.2.0'
 
@@ -6,33 +7,39 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.2'
     }
 }
 
 apply plugin: "kotlin"
 apply plugin: 'application'
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
+apply plugin: 'org.junit.platform.gradle.plugin'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile 'no.tornado:tornadofx:1.7.12'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    compile 'no.tornado:tornadofx:1.7.13'
     compile 'io.reactivex.rxjava2:rxkotlin:2.2.0'
     compile 'io.reactivex.rxjava2:rxjava:2.1.7'
     compile 'com.github.thomasnield:rxkotlinfx:2.2.2'
-    testCompile 'junit:junit:4.12'
+
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.2'
+    testRuntime 'org.junit.platform:junit-platform-launcher:1.0.2'
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.2'
 }
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 mainClassName = 'com.github.pedantic.app.MyApp'
+
+tasks.withType(KotlinCompile).all {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
 
 jar {
     manifest {
