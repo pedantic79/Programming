@@ -16,8 +16,8 @@ struct Timer {
     }
 
   private:
-    typedef chrono::high_resolution_clock clock_;
-    typedef chrono::duration<double, ratio<1>> second_;
+    using clock_ = chrono::high_resolution_clock;
+    using second_ = chrono::duration<double, ratio<1>>;
     chrono::time_point<clock_> start_;
 };
 
@@ -26,8 +26,9 @@ void ordered_insert(T &container, const S &input) {
     for (const auto &n : input) {
         auto itr = begin(container);
         for (; itr != end(container); itr++) {
-            if (n < *itr)
+            if (n < *itr) {
                 break;
+            }
         }
         container.insert(itr, n);
     }
@@ -66,12 +67,14 @@ string stats(const T &v) {
 
 template <typename T>
 T get_default(const vector<T> &v, int n, const T &d) {
+    T r = d;
+
     if (n < v.size()) {
         T num = v[n];
-        return (num == 0) ? d : num;
-    } else {
-        return d;
+        r = (num == 0) ? d : num;
     }
+
+    return r;
 }
 
 template <typename T>

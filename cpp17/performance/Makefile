@@ -6,4 +6,4 @@ clean:
 	rm -rf build
 
 tidy: default
-	clang-tidy -p build *.cpp
+	clang-tidy -checks=cppcoreguidelines-*,cert-*,bugprone-*,llvm-*,misc-*,modernize-*,performance-*,portability-*,readability-* -p build *.cpp
