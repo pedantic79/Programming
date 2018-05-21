@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <chrono>
-#include <iomanip>
 #include <iostream>
 #include <list>
 #include <random>
@@ -55,7 +54,7 @@ string stats(const T &v) {
     const auto m = sum / v.size();
 
     const auto sqsum =
-        reduce(begin(v), end(v), 0.0, [=](const auto acc, const auto x) {
+        accumulate(begin(v), end(v), 0.0, [=](const auto acc, const auto x) {
             return acc + (x - m) * (x - m);
         });
 
@@ -76,7 +75,7 @@ T get_default(const vector<T> &v, int n, const T &d) {
 }
 
 template <typename T>
-vector<T> parse_argv(int argc, char const *argv[]) {
+auto parse_argv(int argc, char const *argv[]) {
     const vector<string> args(argv + 1, argv + argc);
     vector<T> argi;
     transform(begin(args), end(args), back_inserter(argi),
@@ -100,8 +99,9 @@ int main(int argc, char const *argv[]) {
     mt19937 gen{random_device{}()};
     generate(begin(input), end(input), gen);
 
-    const auto times_l = run<list<decltype(input)::value_type>>(input, times);
-    const auto times_v = run<vector<decltype(input)::value_type>>(input, times);
+    using T = decltype(input)::value_type;
+    const auto times_l = run<list<T>>(input, times);
+    const auto times_v = run<vector<T>>(input, times);
 
     cout << input.size() << " integers " << times << " times\n";
     cout << "list  :" << stats(times_l);
