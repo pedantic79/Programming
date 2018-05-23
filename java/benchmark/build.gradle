@@ -1,0 +1,25 @@
+plugins {
+  id "com.github.johnrengelman.shadow" version "2.0.4"
+  id "me.champeau.gradle.jmh" version "0.4.3"
+}
+
+repositories {
+    jcenter()
+}
+
+configurations {
+    provided
+}
+
+dependencies {
+    compile 'org.openjdk.jmh:jmh-core:1.21'
+    provided 'jmh-generator-annprocess:1.21'
+    jmh 'org.openjdk.jmh:jmh-core:1.21'
+}
+
+jmh {
+    humanOutputFile = null
+    duplicateClassesStrategy = 'warn'
+}
+
+jar.dependsOn jmhJar
