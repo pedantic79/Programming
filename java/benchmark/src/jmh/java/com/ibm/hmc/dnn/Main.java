@@ -1,6 +1,7 @@
 package com.ibm.hmc.dnn;
 
 import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -11,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.Arrays.sort;
 
-@BenchmarkMode(Mode.AverageTime)
+@BenchmarkMode(Mode.Throughput)
 //@Warmup(iterations = 1)
 //@Measurement(iterations = 2)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
@@ -20,9 +21,7 @@ import static java.util.Arrays.sort;
 public class Main {
     @State(Scope.Benchmark)
     public static class ArrayContainer {
-
-//        @Param({ "10000", "100000", "1000000", "10000000" })
-        @Param({"10000", "100000"})
+        @Param({"10", "100"})
         private int length;
 
         private int[] array;
@@ -50,11 +49,15 @@ public class Main {
     }
 
     @Benchmark
-    public void benchmarkCustom(ArrayContainer c) {
+    public void benchmarkCustom(Blackhole blackhole, ArrayContainer c) {
         Sort.go(c.arrayToSort);
+        blackhole.consume(c.arrayToSort);
     }
 
-    @Benchmark
-    public void benchmarkBuiltIn(ArrayContainer c) { sort(c.arrayToSort); }
 
+    @Benchmark
+    public void benchmarkBuiltIn(Blackhole blackhole, ArrayContainer c) {
+        sort(c.arrayToSort);
+        blackhole.consume(c.arrayToSort);
+    }
 }
