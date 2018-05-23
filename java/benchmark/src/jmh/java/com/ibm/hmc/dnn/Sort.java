@@ -43,7 +43,8 @@ public class Sort {
     }
 
 
-    public static void go(int[] v) {
+    public static int[] go(int[] v) {
         sort(v);
+        return v;
     }
 }

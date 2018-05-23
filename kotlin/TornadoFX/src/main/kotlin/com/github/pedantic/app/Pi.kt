@@ -19,6 +19,10 @@ import kotlin.math.log
 import kotlin.math.log2
 import kotlin.math.sqrt
 
+fun foo() {
+    java.lang.Math.sqrt(3.0)
+}
+
 fun mulMod(a: Int, b: Int, m: Int): Int = (a.toLong() * b.toLong() % m).toInt()
 
 // return the inverse of x mod y
