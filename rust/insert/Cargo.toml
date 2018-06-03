@@ -1,0 +1,15 @@
+[package]
+name = "insert"
+version = "0.1.0"
+authors = ["Dan Nguyen <pedantic@gmail.com>"]
+
+[dependencies]
+linked-list = "0.0.3"
+
+[dev-dependencies]
+criterion = "0.2"
+rand = "0.3"
+
+[[bench]]
+name = "main"
+harness = false
