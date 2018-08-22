@@ -13,8 +13,6 @@ import Data.Monoid ((<>))
 import Lens
 import Types
 
-{-# ANN module "HLint: ignore Use fmap" #-}
-
 getJuggler :: JugglerName -> PDState (Maybe Juggler)
 getJuggler jn = Lens.use $ juggMap.at jn
 
@@ -31,11 +29,11 @@ getJuggFromCirc cn = fromMaybe err <$> getCircuit cn
 
 getCircuitLen :: CircuitName -> MaybeT PDState Int
 getCircuitLen (CircuitName []) = mzero
-getCircuitLen cn = liftM length . lift . getJuggFromCirc $ cn
+getCircuitLen cn = fmap length . lift . getJuggFromCirc $ cn
 
 addJuggler :: CircuitName -> Juggler -> PDState ()
 addJuggler cn j = do
-  circuits.at cn %= liftM (j<|) -- (<|) = cons
+  circuits.at cn %= fmap (j<|) -- (<|) = cons
   toProcess %= tail
 
 removeLowJuggler :: CircuitName -> PDState Juggler
@@ -82,7 +80,7 @@ assignLostJugglers cAll@(c:cs) (j:js) = do
   case cLen of
     Nothing -> error $ "assignLostJugglers: [" <> show cLen <> "]"
     Just cl -> do
-      circuits.at c %= liftM (j<|)
+      circuits.at c %= fmap (j<|)
       if cl + 1 < s
         then assignLostJugglers cAll js
         else assignLostJugglers cs js

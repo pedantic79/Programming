@@ -1,7 +1,7 @@
 module Parse (parseLines) where
 
 import qualified Text.Parsec as Parsec
-import Control.Applicative (liftA, (<$>), (*>))
+import Control.Applicative ((<$>), (*>))
 import Text.Parsec ((<|>),(<?>))
 import Types
 
@@ -27,7 +27,7 @@ parseCircuit = Circuit <$> parseCircuitName <*> parseSkill
 
 -- Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ',' :: Parsec [[Char]]
 parseCircList :: Parser [CircuitName]
-parseCircList = liftA CircuitName <$> Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
+parseCircList = fmap CircuitName <$> Parsec.many1 Parsec.alphaNum `Parsec.sepBy` Parsec.char ','
 
 parseJuggler :: Parser JugglerRaw
 parseJuggler = JugglerRaw

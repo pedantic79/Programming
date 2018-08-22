@@ -17,10 +17,11 @@ import qualified Control.Monad.State as St
 import qualified Data.Either as Either
 import qualified Data.Map.Strict as Map
 import qualified Data.Monoid as Mon
+import qualified Data.Semigroup as Sg
 
 import Data.Monoid ((<>))
 
-newtype CircuitName = CircuitName String deriving (Eq, Mon.Monoid, Ord)
+newtype CircuitName = CircuitName String deriving (Eq, Sg.Semigroup, Mon.Monoid, Ord)
 newtype JugglerName = JugglerName String deriving (Eq, Ord)
 type FileLine = Either.Either Circuit JugglerRaw
 type PDState = St.StateT ProcessData Id.Identity

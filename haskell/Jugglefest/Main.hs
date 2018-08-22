@@ -1,7 +1,6 @@
 module Main where
 import qualified Control.Monad.Identity as Id
 import qualified Control.Monad.State as St
-import qualified Control.Monad.Trans.Either as ET
 import qualified Data.Either as E
 import qualified Data.Map.Strict as Map
 import qualified Text.Parsec as Parsec
@@ -25,10 +24,10 @@ calcJuggDP cMap jr = Juggler (jrName jr) (jrSkill jr) dps
     dps = fmap (cName &&& dotProduct jr) cList
     cList = mapMaybe (`Map.lookup` cMap) (jrPref jr)
 
-processFile :: FilePath -> ET.EitherT Parsec.ParseError IO [FileLine]
+processFile :: FilePath -> IO (Either Parsec.ParseError [FileLine])
 processFile f = do
-  c <- lift $ readFile f
-  ET.hoistEither $ Parsec.parse parseLines f c
+  c <- readFile f
+  return $ Parsec.parse parseLines f c
 
 mapMkMap :: Ord k => (a -> (k, v)) -> [a] ->  Map.Map k v
 mapMkMap = (Map.fromList .) . fmap
@@ -53,7 +52,7 @@ evaluate = runProcessData assign . uncurry mkProcessData . E.partitionEithers
 
 main :: IO ()
 main = do
-  et <- ET.runEitherT $ processFile "jugglefest.txt"
+  et <- processFile "jugglefest.txt"
   case et of
     Left  l -> hPrint stderr l >> exitWith (ExitFailure 3)
     Right r -> writeFile "jugglefest.out.txt" . unlines . evaluate $ r
