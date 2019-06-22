@@ -23,7 +23,7 @@ fn bench(c: &mut Criterion, size: usize) {
     let vec1 = random(size);
 
     create_bench(c, "vec", &insert_vect, &vec1);
-    // create_bench(c, "list", &insert_list, &vec1);
+    create_bench(c, "list", &insert_list, &vec1);
     create_bench(c, "func", &insert_vect_func, &vec1);
 }
 
