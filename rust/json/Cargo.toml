@@ -1,0 +1,12 @@
+[package]
+name = "json"
+version = "0.1.0"
+authors = ["Dan Nguyen <pedantic@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+serde = "1.0.92"
+serde_derive = "1.0.92"
+serde_json = "1.0.39"
+env_logger = "0.6.1"
+log = "0.4.6"
