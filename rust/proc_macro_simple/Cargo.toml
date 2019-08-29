@@ -1,0 +1,12 @@
+[package]
+name = "proc_macro_simple"
+version = "0.1.0"
+authors = ["Dan Nguyen <pedantic@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+syn = "1.0"
+quote = "1.0"
+
+[lib]
+proc-macro = true
