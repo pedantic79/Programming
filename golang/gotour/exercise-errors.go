@@ -15,9 +15,10 @@ func Sqrt(x float64) (float64, error) {
 	if x < 0 {
 		return 0, ErrNegativeSqrt(x)
 	}
+	epsilon := math.Nextafter(1, 2) - 1
 
 	zold, z := float64(-1), float64(1)
-	for math.Abs(zold-z) > 1e-10 {
+	for math.Abs(zold-z) > epsilon {
 		zold, z = z, z-(z*z-x)/(2*z)
 	}
 
