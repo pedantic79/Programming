@@ -1,14 +1,14 @@
 [package]
-name = "chunk-perf"
-version = "0.1.0"
 authors = ["Dan Nguyen <pedantic@gmail.com>"]
 edition = "2018"
+name = "chunk-perf"
+version = "0.1.0"
 
 [dependencies]
 
 [dev-dependencies]
-criterion = "0.2"
+criterion = "0.3.5"
 
 [[bench]]
-name = "split"
 harness = false
+name = "split"
