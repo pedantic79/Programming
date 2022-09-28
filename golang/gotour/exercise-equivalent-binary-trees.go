@@ -2,22 +2,23 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+
 	"golang.org/x/tour/tree"
 )
+
+func walkHelper(t *tree.Tree, ch chan int) {
+	if t != nil {
+		walkHelper(t.Left, ch)
+		ch <- t.Value
+		walkHelper(t.Right, ch)
+	}
+}
 
 // Walk walks the tree t sending all values
 // from the tree to the channel ch.
 func Walk(t *tree.Tree, ch chan int) {
-	var walk func(*tree.Tree, chan int)
-
-	walk = func(t *tree.Tree, ch chan int) {
-		if t != nil {
-			walk(t.Left, ch)
-			ch <- t.Value
-			walk(t.Right, ch)
-		}
-	}
-	walk(t, ch)
+	walkHelper(t, ch)
 	close(ch)
 }
 
@@ -35,16 +36,20 @@ func Same(t1, t2 *tree.Tree) bool {
 		}
 	}
 
-	return true
+	// check that the channels are both closed
+	_, ok1 := <-c1
+	_, ok2 := <-c2
+
+	return !ok1 && !ok2
 }
 
-func Test(x, y int, eq bool) {
+func Test(x, y int, a, b int, eq bool) {
 	symb := "!="
 	if eq {
 		symb = "=="
 	}
 
-	same := Same(tree.New(x), tree.New(y))
+	same := Same(New(x, a), New(y, b))
 
 	passed := "PASSED"
 	if same != eq {
@@ -52,6 +57,26 @@ func Test(x, y int, eq bool) {
 	}
 
 	fmt.Printf("tree.New(%d) %s tree.New(%d): %s\n", x, symb, y, passed)
+}
+
+func insert(t *tree.Tree, v int) *tree.Tree {
+	if t == nil {
+		return &tree.Tree{nil, v, nil}
+	}
+	if v < t.Value {
+		t.Left = insert(t.Left, v)
+	} else {
+		t.Right = insert(t.Right, v)
+	}
+	return t
+}
+
+func new(k, len int) *tree.Tree {
+	var t *tree.Tree
+	for _, v := range rand.Perm(len) {
+		t = insert(t, (1+v)*k)
+	}
+	return t
 }
 
 func main() {
@@ -63,7 +88,9 @@ func main() {
 	}
 	fmt.Printf("\n")
 
-	Test(1, 1, true)
-	Test(1, 2, false)
-	Test(3, 2, false)
+	Test(1, 1, 10, 10, true)
+	Test(1, 1, 10, 9, false)
+	Test(1, 1, 9, 10, false)
+	Test(1, 2, 10, 10, false)
+	Test(3, 2, 10, 10, false)
 }
