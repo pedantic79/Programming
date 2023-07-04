@@ -30,7 +30,7 @@ pub fn insert_vect_func(input: &[i32]) -> Vec<i32> {
             .enumerate()
             .filter(|(_, &item)| item > *n)
             .map(|(i, _)| i)
-            .nth(0)
+            .next()
         {
             Some(position) => output.insert(position, *n),
             None => output.push(*n),

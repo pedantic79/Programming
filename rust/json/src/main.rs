@@ -1,7 +1,6 @@
-use env_logger::{from_env, Env};
+use env_logger::{Builder, Env};
 use log::error;
 use serde_derive::{Deserialize, Serialize};
-use serde_json;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Person<'a> {
@@ -13,7 +12,7 @@ struct Person<'a> {
 
 fn main() {
     // Set logger to log at all levels
-    from_env(Env::new().default_filter_or("trace")).init();
+    Builder::from_env(Env::new().default_filter_or("trace")).init();
 
     let json_str =
         r#"{ "fullname": "John Doe", "age": 21, "phone": ["512-555-1234", "512-555-5555"] }"#;
