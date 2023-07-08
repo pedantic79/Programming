@@ -1,4 +1,7 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{
+    criterion_group, criterion_main, measurement::Measurement, BenchmarkGroup, BenchmarkId,
+    Criterion,
+};
 use insert::*;
 use rand::Rng;
 
@@ -7,30 +10,37 @@ fn random(size: usize) -> Vec<i32> {
     (0..size).map(|_| rng.gen()).collect()
 }
 
-fn create_bench<T>(
-    c: &mut Criterion,
-    name: &str,
-    f: &'static (dyn for<'r> Fn(&'r [i32]) -> T),
-    v: &[i32],
+fn create_bench<T, M: Measurement>(
+    c: &mut BenchmarkGroup<M>,
+    f: &'static dyn for<'r> Fn(&'r [i32]) -> T,
+    data: &[Vec<i32>],
 ) {
-    let vec = v.to_owned();
-    let vstr = format!("{} {}", name, v.len());
+    for d in data {
+        let vec = d.to_owned();
 
-    c.bench_function(&vstr, move |b| b.iter(|| f(&vec)));
+        c.bench_function(BenchmarkId::from_parameter(d.len()), move |b| {
+            b.iter(|| f(&vec))
+        });
+    }
 }
 
-fn bench(c: &mut Criterion, size: usize) {
-    let vec1 = random(size);
-
-    create_bench(c, "vec", &insert_vect, &vec1);
-    create_bench(c, "list", &insert_list, &vec1);
-    create_bench(c, "func", &insert_vect_func, &vec1);
+fn bench<T>(
+    c: &mut Criterion,
+    name: &str,
+    f: &'static dyn for<'r> Fn(&'r [i32]) -> T,
+    data: &[Vec<i32>],
+) {
+    let mut bg = c.benchmark_group(name);
+    create_bench(&mut bg, f, data);
+    bg.finish();
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    for n in &[10, 100, 1000] {
-        bench(c, *n);
-    }
+    let data = [random(10), random(100), random(1000)];
+
+    bench(c, "vec", &insert_vect, &data);
+    bench(c, "list", &insert_list, &data);
+    bench(c, "func", &insert_vect_func, &data);
 }
 
 criterion_group!(benches, criterion_benchmark);

@@ -2,10 +2,10 @@
 name = "proc_macro_simple"
 version = "0.1.0"
 authors = ["Dan Nguyen <pedantic@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-syn = "1.0"
+syn = "2.0"
 quote = "1.0"
 
 [lib]
