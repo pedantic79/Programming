@@ -9,7 +9,7 @@ linked-list = "0.0.3"
 
 [dev-dependencies]
 criterion = "0.5.1"
-rand = "0.8.5"
+rand = "0.9.3"
 
 [[bench]]
 harness = false
