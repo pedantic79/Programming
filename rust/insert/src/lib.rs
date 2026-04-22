@@ -44,15 +44,18 @@ pub fn insert_list(input: &[i32]) -> LinkedList<i32> {
     let mut output = LinkedList::new();
 
     for n in input {
-        let mut cursor = output.cursor();
+        let mut cursor = output.cursor_mut();
 
-        while let Some(value) = cursor.next() {
+        while let Some(value) = cursor.peek_next() {
             if *value > *n {
+                cursor.move_next();
                 break;
             }
+            cursor.move_next();
         }
-        cursor.prev();
-        cursor.insert(*n);
+        let mut l = LinkedList::new();
+        l.push_back(*n);
+        cursor.splice_before(l);
     }
 
     output

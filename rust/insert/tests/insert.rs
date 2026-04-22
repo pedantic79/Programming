@@ -2,7 +2,7 @@ use insert::*;
 
 #[test]
 fn regression() {
-    let v = &vec![5, 4, 3, 2, 1];
+    let v = &[5, 4, 3, 2, 1];
 
     let out = insert_vect(v);
     assert_eq!(out, [1, 2, 3, 4, 5]);

@@ -8,7 +8,7 @@ fn mod10(n: u32, zeroth: bool) -> bool {
     if n == 0 {
         zeroth
     } else {
-        n % 10 == 0
+        n.is_multiple_of(10)
     }
 }
 

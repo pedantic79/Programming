@@ -3,11 +3,11 @@ use criterion::{
     Criterion,
 };
 use insert::*;
-use rand::Rng;
+use rand::RngExt;
 
 fn random(size: usize) -> Vec<i32> {
-    let mut rng = rand::thread_rng();
-    (0..size).map(|_| rng.gen()).collect()
+    let mut rng = rand::rng();
+    (0..size).map(|_| rng.random()).collect()
 }
 
 fn create_bench<T, M: Measurement>(
